@@ -132,5 +132,74 @@ characters = {
             }
         ]
     },
+    "Camellya": {
+        "image": "assets/images/camellya_icon.png",
+        "teams": [
+            {
+                "title": "BEST TEAM",
+                "slots": [
+                    [("Camellya", "assets/images/camellya_icon.png")],
+                    [("Roccia", "assets/images/roccia_icon.png"), ("Sanhua", "assets/images/sanhua_icon.png")],
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
+                ]
+            },
+            {
+                "title": "ALTERNATIVE TEAM",
+                "slots": [
+                    [("Camellya", "assets/images/camellya_icon.png")],
+                    [("Danjin", "assets/images/danjin_icon.png"), ("Cantarella", "assets/images/cantarella_icon.png")],
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
+                ]
+            }
+        ]
+    },
+    "Cantarella": {
+        "image": "assets/images/cantarella_icon.png",
+        "teams": [
+            {
+                "title": "TEAM 1 - DOUBLE HAVOC",
+                "slots": [
+                    [
+                        ("Camellya", "assets/images/camellya_icon.png"),
+                        ("Rover (Havoc)", "assets/images/havoc_rover_icon.png"),
+                        ("Danjin", "assets/images/danjin_icon.png")
+                    ],
+                    [("Cantarella", "assets/images/cantarella_icon.png")],
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
+                ],
+                "note": "• Use Cantarella on Midnight Veil here. It's recommended to use Verina with Danjin because she takes a ton of field time as a Main DPS."
+            },
+            {
+                "title": "TEAM 2 - CARLOTTA TEAM",
+                "slots": [
+                    [("Carlotta", "assets/images/carlotta_icon.png")],
+                    [("Cantarella", "assets/images/cantarella_icon.png")],
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
+                ],
+                "note": "• Your Carlotta may need more Energy Regen than usual for this team to work."
+            },
+            {
+                "title": "TEAM 3 - JINHSI TEAM",
+                "slots": [
+                    [("Jinhsi", "assets/images/jinhsi_icon.png")],
+                    [("Cantarella", "assets/images/cantarella_icon.png")],
+                    [("Verina", "assets/images/verina_icon.png")]
+                ],
+                "note": "• Strongly recommended to use Cantarella on Moonlit Clouds to alleviate Energy requirements. Verina is a better pick than Shorekeeper due to requiring less field time and providing extra Coordinated Attacks."
+            }
+        ]
+    },
 
 }
