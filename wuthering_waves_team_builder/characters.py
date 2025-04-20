@@ -958,10 +958,12 @@ characters = {
                 "title": "BEST TEAM",
                 "note": "Make sure to run Yuanwu on Rejuvenating Glow and your third party member on Moonlit Clouds for optimal DPS!",
                 "slots": [
-                    [("JinhsI", "assets/images/jinhsi_icon.png")],
+                    [("Jinhsi", "assets/images/jinhsi_icon.png")],
                     [("Yuanwu", "assets/images/yuanwu_icon.png")],
-                    [("The Shorekeeper", "assets/images/the_shorekeeper_icon.png"),
-                     ("Verina", "assets/images/verina_icon.png")]
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
                 ]
             }
         ]
@@ -974,18 +976,38 @@ characters = {
         "image": "assets/images/zhezhi_icon.png",
         "teams": [
             {
-                "name": "Best Team",
-                "members": ["Carlotta", "Zhezhi", "The Shorekeeper", "Verina"]
+                "title": "BEST TEAM",
+                "slots": [
+                    [("Carlotta", "assets/images/carlotta_icon.png")],
+                    [("Zhezhi", "assets/images/zhezhi_icon.png")],
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
+                ]
             },
             {
-                "name": "Jinhsi Team",
-                "members": ["Jinhsi", "Zhezhi", "The Shorekeeper", "Verina"]
+                "title": "JINHSI TEAM",
+                "slots": [
+                    [("Jinhsi", "assets/images/jinhsi_icon.png")],
+                    [("Zhezhi", "assets/images/zhezhi_icon.png")],
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
+                ]
             },
             {
-                "name": "Lingyang Team",
-                "members": ["Lingyang", "Zhezhi", "The Shorekeeper", "Verina"]
+                "title": "LINGYANG TEAM",
+                "slots": [
+                    [("Lingyang", "assets/images/lingyang_icon.png")],
+                    [("Zhezhi", "assets/images/zhezhi_icon.png")],
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
+                ]
             }
         ]
     }
-
 }

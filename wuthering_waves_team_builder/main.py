@@ -1,6 +1,7 @@
 # main.py
 
 import tkinter as tk
+from tkinter import ttk
 from PIL import Image, ImageTk
 from characters import characters
 
@@ -11,11 +12,9 @@ class TeamBuilderApp(tk.Tk):
         self.title("Wuthering Waves Team Builder")
         self.configure(bg="#1e1e1e")
 
-        # borderless & full‑screen
-        self.overrideredirect(True)
-        self.update_idletasks()
-        w, h = self.winfo_screenwidth(), self.winfo_screenheight()
-        self.geometry(f"{w}x{h}+0+0")
+        # native full‑screen — the OS will handle the taskbar for you
+        self.attributes("-fullscreen", True)
+
         # handy quit key during dev
         self.bind("<Escape>", lambda e: self.destroy())
 
@@ -32,7 +31,7 @@ class TeamBuilderApp(tk.Tk):
         # 1) Pack the overall container
         self.main_frame.pack(fill="both", expand=True, padx=50, pady=30)
 
-        # 2) Add your header (packed into main_frame)
+        # 2) Header
         header = tk.Label(
             self.main_frame,
             text="Select Your Character",
@@ -43,11 +42,18 @@ class TeamBuilderApp(tk.Tk):
         )
         header.pack(fill="x", pady=(0, 20))
 
-        # 3) Create a dedicated frame for the grid of cards
+        # 3) Grid container
         grid_frame = tk.Frame(self.main_frame, bg="#1e1e1e")
         grid_frame.pack(fill="both", expand=True)
 
-        # 4) Now grid your portrait‑cards into grid_frame only
+        # 4) Figure out how many cards fit in one row
+        self.update_idletasks()
+        total_width = self.winfo_width() - 100  # subtract your side padding
+        # each card is ~100px image + 2*10px internal + 2*15px grid‐pad = 150px
+        card_slot = 100 + 2 * 10 + 2 * 15
+        cols = max(1, total_width // card_slot)
+
+        # 5) Lay out all of the character cards
         row = col = 0
         for name, info in characters.items():
             img = Image.open(info["image"]).resize((100, 100))
@@ -62,22 +68,23 @@ class TeamBuilderApp(tk.Tk):
             )
             card.grid(row=row, column=col, padx=15, pady=15, sticky="nsew")
 
-            btn = tk.Button(card, image=photo, command=lambda n=name: self.show_teams(n), bd=0)
+            btn = tk.Button(card, image=photo, bd=0, command=lambda n=name: self.show_teams(n))
             btn.image = photo
             btn.pack()
-            tk.Label(card, text=name, bg="#2e2e2e", fg="white", font=("Helvetica", 10)).pack(pady=(5, 0))
+            tk.Label(card, text=name, bg="#2e2e2e", fg="white",
+                     font=("Helvetica", 10)).pack(pady=(5, 0))
 
-            # optional hover effect
+            # Hover effect
             card.bind("<Enter>", lambda e, c=card: c.config(bg="#383838"))
             card.bind("<Leave>", lambda e, c=card: c.config(bg="#2e2e2e"))
 
             col += 1
-            if col > 5:
+            if col >= cols:
                 col = 0
                 row += 1
 
-        # 5) (Optional) Make columns expand evenly
-        for c in range(6):
+        # 6) Make columns expand evenly if window is resized
+        for c in range(cols):
             grid_frame.grid_columnconfigure(c, weight=1)
 
     # ─── Team Display (scrollable + back) ───────────────────────────────────────
