@@ -1,3 +1,5 @@
+# characters.py
+
 characters = {
     "Encore": {
         "image": "assets/images/encore_icon.png",
@@ -7,8 +9,10 @@ characters = {
                 "slots": [
                     [("Encore", "assets/images/encore_icon.png")],
                     [("Sanhua", "assets/images/sanhua_icon.png")],
-                    [("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
-                     ("Verina", "assets/images/verina_icon.png")]
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
                 ]
             },
             {
@@ -16,8 +20,10 @@ characters = {
                 "slots": [
                     [("Encore", "assets/images/encore_icon.png")],
                     [("Changli", "assets/images/changli_icon.png")],
-                    [("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
-                     ("Verina", "assets/images/verina_icon.png")]
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
                 ]
             }
         ]
@@ -31,8 +37,10 @@ characters = {
                 "slots": [
                     [("Aalto", "assets/images/aalto_icon.png")],
                     [("Sanhua", "assets/images/sanhua_icon.png")],
-                    [("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
-                     ("Verina", "assets/images/verina_icon.png")]
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
                 ]
             },
             {
@@ -40,16 +48,20 @@ characters = {
                 "slots": [
                     [("Jiyan", "assets/images/jiyan_icon.png")],
                     [("Aalto", "assets/images/aalto_icon.png")],
-                    [("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
-                     ("Verina", "assets/images/verina_icon.png")]
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
                 ]
             }
         ]
     },
+
     "Baizhi": {
         "image": "assets/images/baizhi_icon.png",
         "note": "Baizhi is **very flexible** and can be used in any team in the Support slot."
     },
+
     "Brant": {
         "image": "assets/images/brant_icon.png",
         "teams": [
@@ -58,8 +70,10 @@ characters = {
                 "slots": [
                     [("Changli", "assets/images/changli_icon.png")],
                     [("Brant", "assets/images/brant_icon.png")],
-                    [("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
-                     ("Verina", "assets/images/verina_icon.png")]
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
                 ]
             },
             {
@@ -67,20 +81,56 @@ characters = {
                 "slots": [
                     [("Brant", "assets/images/brant_icon.png")],
                     [("Sanhua", "assets/images/sanhua_icon.png")],
-                    [("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
-                     ("Verina", "assets/images/verina_icon.png")]
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
                 ]
             },
             {
                 "title": "DOUBLE FUSION TEAM",
                 "slots": [
-                    [("Chixia", "assets/images/chixia_icon.png"), ("Encore", "assets/images/encore_icon.png")],
+                    [
+                        ("Chixia", "assets/images/chixia_icon.png"),
+                        ("Encore", "assets/images/encore_icon.png")
+                    ],
                     [("Brant", "assets/images/brant_icon.png")],
-                    [("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
-                     ("Verina", "assets/images/verina_icon.png")]
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
                 ]
             }
         ]
-    }
+    },
+    "Calcharo": {
+        "image": "assets/images/calcharo_icon.png",
+        "teams": [
+            {
+                "title": "BEST TEAM",
+                "slots": [
+                    [("Calcharo", "assets/images/calcharo_icon.png")],
+                    [("Yinlin", "assets/images/yinlin_icon.png")],
+                    [
+                        ("Verina", "assets/images/verina_icon.png"),
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Youhu", "assets/images/youhu_icon.png")
+                    ]
+                ]
+            },
+            {
+                "title": "BUDGET TEAM",
+                "slots": [
+                    [("Calcharo", "assets/images/calcharo_icon.png")],
+                    [("Jianxin", "assets/images/jianxin_icon.png")],
+                    [
+                        ("The Shorekeeper", "assets/images/shorekeeper_icon.png"),
+                        ("Verina", "assets/images/verina_icon.png")
+                    ]
+                ],
+                "note": "• This team is entirely incompatible with Swap Cancels."
+            }
+        ]
+    },
 
 }
