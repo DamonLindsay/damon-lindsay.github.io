@@ -11,6 +11,8 @@ class TeamBuilderApp(tk.Tk):
         super().__init__()
         self.title("Wuthering Waves Team Builder")
         self.configure(bg="#1e1e1e")
+        self.images = {}
+        self.clear_frames()
 
         # native full‑screen — the OS will handle the taskbar for you
         self.attributes("-fullscreen", True)
@@ -26,12 +28,13 @@ class TeamBuilderApp(tk.Tk):
 
     # ─── Character Selection Grid ──────────────────────────────────────────────
     def show_character_grid(self):
+        # 1) clear the old widgets
         self.clear_frames()
 
-        # 1) Pack the overall container
+        # 2) pack the container
         self.main_frame.pack(fill="both", expand=True, padx=50, pady=30)
 
-        # 2) Header
+        # 3) header
         header = tk.Label(
             self.main_frame,
             text="Select Your Character",
@@ -42,39 +45,30 @@ class TeamBuilderApp(tk.Tk):
         )
         header.pack(fill="x", pady=(0, 20))
 
-        # 3) Grid container
+        # 4) where cards go
         grid_frame = tk.Frame(self.main_frame, bg="#1e1e1e")
         grid_frame.pack(fill="both", expand=True)
 
-        # 4) Figure out how many cards fit in one row
+        # 5) calculate how many columns fit
         self.update_idletasks()
-        total_width = self.winfo_width() - 100  # subtract your side padding
-        # each card is ~100px image + 2*10px internal + 2*15px grid‐pad = 150px
-        card_slot = 100 + 2 * 10 + 2 * 15
-        cols = max(1, total_width // card_slot)
+        total_width = self.winfo_width() - 100
+        card_width = 100 + 2 * 10 + 2 * 15
+        cols = max(1, total_width // card_width)
 
-        # 5) Lay out all of the character cards
         row = col = 0
-        for name, info in characters.items():
-            img = Image.open(info["image"]).resize((100, 100))
+        for name in sorted(characters.keys()):
+            info = characters[name]
+            img = Image.open(info["image"]).resize((100, 100), Image.Resampling.LANCZOS)
             photo = ImageTk.PhotoImage(img)
+            self.images[name] = photo
 
-            card = tk.Frame(
-                grid_frame,
-                bg="#2e2e2e",
-                bd=2,
-                relief="ridge",
-                padx=10, pady=10
-            )
+            card = tk.Frame(grid_frame, bg="#2e2e2e", bd=2, relief="ridge", padx=10, pady=10)
             card.grid(row=row, column=col, padx=15, pady=15, sticky="nsew")
 
             btn = tk.Button(card, image=photo, bd=0, command=lambda n=name: self.show_teams(n))
-            btn.image = photo
             btn.pack()
-            tk.Label(card, text=name, bg="#2e2e2e", fg="white",
-                     font=("Helvetica", 10)).pack(pady=(5, 0))
+            tk.Label(card, text=name, bg="#2e2e2e", fg="white", font=("Helvetica", 10)).pack(pady=(5, 0))
 
-            # Hover effect
             card.bind("<Enter>", lambda e, c=card: c.config(bg="#383838"))
             card.bind("<Leave>", lambda e, c=card: c.config(bg="#2e2e2e"))
 
@@ -83,7 +77,6 @@ class TeamBuilderApp(tk.Tk):
                 col = 0
                 row += 1
 
-        # 6) Make columns expand evenly if window is resized
         for c in range(cols):
             grid_frame.grid_columnconfigure(c, weight=1)
 
