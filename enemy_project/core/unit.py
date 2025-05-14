@@ -3,6 +3,7 @@
 import os
 import pygame
 from .settings import TILE_SIZE, IMAGES_DIR
+from .combat import to_hit_roll, wound_roll, saving_throw
 
 # Team color mapping
 TEAM_COLORS = {
@@ -21,6 +22,7 @@ class Unit:
             movement,
             leadership, save,
             position,
+            attack_range=1,
             team="player",
             sprite_file=None,
             abilities=None
@@ -37,6 +39,7 @@ class Unit:
         leadership:  Leadership (morale tests)
         save:        Armor Save (e.g. 3 means 3+ to save)
         position:    (grid_x, grid_y)
+        attack_range:tiles for combat range
         team:        "player" or "enemy"
         sprite_file: optional sprite filename in assets/images
         abilities:   list of special rules (strings)
@@ -53,6 +56,7 @@ class Unit:
         self.leadership = leadership
         self.save = save
         self.position = position
+        self.attack_range = attack_range
         self.team = team
         self.selected = False
         self.abilities = abilities or []
@@ -86,3 +90,18 @@ class Unit:
 
     def is_alive(self):
         return self.current_wounds > 0
+
+    def attack(self, target):
+        """Resolve all attacks vs a target unit and subtract unsaved wounds."""
+        total_unsaved = 0
+        for _ in range(self.attacks):
+            if not to_hit_roll(self.ws):
+                continue
+            if not wound_roll(self.strength, target.toughness):
+                continue
+            if saving_throw(target.save):
+                continue
+            total_unsaved += 1
+
+        target.current_wounds -= total_unsaved
+        print(f"{self.name} hits!: unsaved wounds = {total_unsaved}")
