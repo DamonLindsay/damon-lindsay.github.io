@@ -292,63 +292,74 @@ class BattleState(State):
                 else:
                     pygame.draw.circle(surface, oc, (px, py), TILE_SIZE // 3 + 4, 3)
 
-                # ── Stats Panel ─────────────────────────────────────────────
-                panel_x = SCREEN_WIDTH - STAT_PANEL_WIDTH
-                padding = 10
-                font = pygame.font.Font(None, 28)
+                    # ── Stats Panel ─────────────────────────────────────────────
+                    panel_x = SCREEN_WIDTH - STAT_PANEL_WIDTH
+                    padding = 10
 
-                # background
-                pygame.draw.rect(surface, (20, 20, 20),
-                                 (panel_x, 0, STAT_PANEL_WIDTH, SCREEN_HEIGHT))
-                pygame.draw.line(surface, (100, 100, 100),
-                                 (panel_x, 0), (panel_x, SCREEN_HEIGHT), 2)
+                    # panel background
+                    pygame.draw.rect(surface, (20, 20, 20),
+                                     (panel_x, 0, STAT_PANEL_WIDTH, SCREEN_HEIGHT))
+                    pygame.draw.line(surface, (100, 100, 100),
+                                     (panel_x, 0), (panel_x, SCREEN_HEIGHT), 2)
 
-                selected = [u for u in self.units if u.selected]
-                if selected:
-                    u = selected[0]
+                    # determine which unit to show: hover > selected
+                    hover_unit = None
+                    if self.hover_tile:
+                        hover_unit = next((u for u in self.units
+                                           if u.position == self.hover_tile), None)
+                    selected_unit = next((u for u in self.units if u.selected), None)
+                    u = hover_unit or selected_unit
 
-                    # 1) Portrait slot
-                    portrait_size = STAT_PANEL_WIDTH - padding * 2
-                    portrait_rect = pygame.Rect(
-                        panel_x + padding,
-                        padding,
-                        portrait_size,
-                        portrait_size
-                    )
-                    # optional background frame
-                    pygame.draw.rect(surface, (40, 40, 40), portrait_rect)
-                    if u.sprite:
-                        sprite_scaled = pygame.transform.scale(u.sprite,
-                                                               (portrait_size, portrait_size))
-                        surface.blit(sprite_scaled, portrait_rect.topleft)
+                    font_name = pygame.font.Font(None, 32)
+                    font_stat = pygame.font.Font(None, 24)
 
-                    # 2) Build stat lines
-                    stats = [
-                        ("WS", f"{u.ws}+"),
-                        ("BS", f"{u.bs}+"),
-                        ("S", str(u.strength)),
-                        ("T", str(u.toughness)),
-                        ("W", f"{u.current_wounds}/{u.max_wounds}"),
-                        ("A", str(u.attacks)),
-                        ("Ld", str(u.leadership)),
-                        ("Sv", f"{u.save}+"),
-                    ]
-                    lines = [f"{label}: {value}" for label, value in stats]
+                    if u:
+                        # 1) Unit name centered
+                        name_lbl = font_name.render(u.name, True, (255, 255, 255))
+                        name_rect = name_lbl.get_rect(
+                            center=(panel_x + STAT_PANEL_WIDTH // 2, padding + name_lbl.get_height() // 2)
+                        )
+                        surface.blit(name_lbl, name_rect)
 
-                    # 3) Dynamic vertical spacing
-                    used_height = padding + portrait_size + padding
-                    remaining = SCREEN_HEIGHT - used_height - padding
-                    line_count = len(lines)
-                    line_spacing = remaining // (line_count + 1)
+                        # 2) Portrait below name
+                        portrait_size = STAT_PANEL_WIDTH - padding * 2
+                        portrait_rect = pygame.Rect(
+                            panel_x + padding,
+                            name_rect.bottom + padding,
+                            portrait_size,
+                            portrait_size
+                        )
+                        pygame.draw.rect(surface, (40, 40, 40), portrait_rect)  # frame
+                        if u.sprite:
+                            sprite_scaled = pygame.transform.scale(u.sprite,
+                                                                   (portrait_size, portrait_size))
+                            surface.blit(sprite_scaled, portrait_rect.topleft)
 
-                    y = used_height + line_spacing
-                    for line in lines:
-                        lbl = font.render(line, True, (200, 200, 200))
-                        surface.blit(lbl, (panel_x + padding, y))
-                        y += line_spacing
+                        # 3) Full stat names, dynamically spaced
+                        stats = [
+                            ("Weapon Skill", f"{u.ws}+"),
+                            ("Ballistic Skill", f"{u.bs}+"),
+                            ("Strength", str(u.strength)),
+                            ("Toughness", str(u.toughness)),
+                            ("Wounds", f"{u.current_wounds}/{u.max_wounds}"),
+                            ("Attacks", str(u.attacks)),
+                            ("Leadership", str(u.leadership)),
+                            ("Save", f"{u.save}+"),
+                        ]
+                        lines = [f"{label}: {value}" for label, value in stats]
 
-                else:
-                    # No selection fallback
-                    msg = "No unit selected"
-                    lbl = font.render(msg, True, (200, 200, 200))
-                    surface.blit(lbl, (panel_x + padding, SCREEN_HEIGHT // 2))
+                        start_y = portrait_rect.bottom + padding
+                        leftover = SCREEN_HEIGHT - start_y - padding
+                        spacing = leftover // (len(lines) + 1)
+                        y = start_y + spacing
+
+                        for line in lines:
+                            lbl = font_stat.render(line, True, (200, 200, 200))
+                            surface.blit(lbl, (panel_x + padding, y))
+                            y += spacing
+
+                    else:
+                        # no hovered/selected unit
+                        msg = "No unit selected"
+                        lbl = font_name.render(msg, True, (200, 200, 200))
+                        surface.blit(lbl, (panel_x + padding, SCREEN_HEIGHT // 2))
