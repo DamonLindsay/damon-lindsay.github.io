@@ -1,7 +1,7 @@
 # core/states.py
 
 import pygame
-from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT
+from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT, STAT_PANEL_WIDTH
 from .unit import Unit
 
 
@@ -11,11 +11,14 @@ class State:
     def __init__(self, game):
         self.game = game
 
-    def handle_events(self, events): pass
+    def handle_events(self, events):
+        pass
 
-    def update(self, dt):       pass
+    def update(self, dt):
+        pass
 
-    def draw(self, surface):    pass
+    def draw(self, surface):
+        pass
 
 
 class MainMenu(State):
@@ -112,11 +115,10 @@ class PvESetup(State):
 
 
 class BattleState(State):
-    """Battlefield: draws grid, units, and allows click-to-move within range."""
+    """Battlefield: draws grid, movement highlight, units, and stats panel."""
 
     def __init__(self, game):
         super().__init__(game)
-        # example unit at 1,1
         self.units = [
             Unit("Space Marine", hp=10, attack=3, movement=5, position=(1, 1))
         ]
@@ -126,52 +128,55 @@ class BattleState(State):
             if e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
                 from .states import MainMenu
                 self.game.state = MainMenu(self.game)
-
             elif e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
                 mx, my = e.pos
                 gx, gy = mx // TILE_SIZE, my // TILE_SIZE
 
-                # see if we clicked on a unit
                 clicked_unit = next((u for u in self.units if u.position == (gx, gy)), None)
                 if clicked_unit:
-                    # select this unit
                     for u in self.units:
                         u.selected = False
                     clicked_unit.selected = True
-
                 else:
-                    # clicked empty tile: if we have exactly one selected unit, try to move it
                     selected = [u for u in self.units if u.selected]
                     if selected:
                         u = selected[0]
-                        # ensure tile not occupied
-                        occupied = any(o.position == (gx, gy) for o in self.units)
-                        if not occupied:
+                        if not any(o.position == (gx, gy) for o in self.units):
                             dx = abs(gx - u.position[0])
                             dy = abs(gy - u.position[1])
                             if dx + dy <= u.movement:
                                 u.position = (gx, gy)
-                            # else: ignore or play invalid move sound
 
     def update(self, dt):
         pass
 
     def draw(self, surface):
-        # background
+        # Fill background
         surface.fill((30, 30, 30))
 
-        # grid
+        # Draw grid
         for y in range(GRID_HEIGHT):
             for x in range(GRID_WIDTH):
                 rect = pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
                 pygame.draw.rect(surface, (50, 50, 50), rect, 1)
 
-        # units
+        # Highlight movement range
+        selected = [u for u in self.units if u.selected]
+        if selected:
+            u = selected[0]
+            overlay = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
+            overlay.fill((0, 255, 0, 80))  # semi-transparent green
+            ux, uy = u.position
+            for x in range(GRID_WIDTH):
+                for y in range(GRID_HEIGHT):
+                    if abs(x - ux) + abs(y - uy) <= u.movement:
+                        surface.blit(overlay, (x * TILE_SIZE, y * TILE_SIZE))
+
+        # Draw units
         for u in self.units:
             u.draw(surface)
 
-        # stats panel (unchanged)
-        from .settings import STAT_PANEL_WIDTH
+        # Draw stats panel
         panel_x = SCREEN_WIDTH - STAT_PANEL_WIDTH
         panel = pygame.Rect(panel_x, 0, STAT_PANEL_WIDTH, SCREEN_HEIGHT)
         pygame.draw.rect(surface, (20, 20, 20), panel)
