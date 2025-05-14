@@ -106,32 +106,22 @@ class PvESetup(State):
 
 
 class BattleState(State):
-    """Battlefield: turn phases, grid, highlights, units, stats, and simple enemy AI."""
-
     def __init__(self, game):
         super().__init__(game)
         self.phase = "player"
-        self.enemy_processed = True  # so AI only runs when we flip phase
+        self.enemy_processed = True
         self.units = [
             Unit(
-                name="Tactical Marine",
-                ws=3, bs=3, strength=4, toughness=4,
-                wounds=2, attacks=1, movement=5,
-                leadership=7, save=3,
-                position=(1, 1),
-                attack_range=1,
-                team="player",
+                name="Tactical Marine", ws=3, bs=3, strength=4, toughness=4,
+                wounds=2, attacks=1, movement=5, leadership=7, save=3,
+                position=(1, 1), attack_range=1, team="player",
                 sprite_file="tactical_marine.png",
                 abilities=["And They Shall Know No Fear"]
             ),
             Unit(
-                name="Enemy Ork",
-                ws=2, bs=0, strength=3, toughness=4,
-                wounds=1, attacks=2, movement=6,
-                leadership=6, save=6,
-                position=(5, 2),
-                attack_range=1,
-                team="enemy",
+                name="Enemy Ork", ws=2, bs=0, strength=3, toughness=4,
+                wounds=1, attacks=2, movement=6, leadership=6, save=6,
+                position=(5, 2), attack_range=1, team="enemy",
                 sprite_file="ork.png"
             ),
         ]
@@ -147,7 +137,7 @@ class BattleState(State):
                     from .states import MainMenu
                     self.game.state = MainMenu(self.game)
                 elif e.key == pygame.K_e and self.phase == "player":
-                    # end player turn → start enemy turn
+                    # end player turn
                     self.phase = "enemy"
                     self.enemy_processed = False
 
@@ -156,41 +146,44 @@ class BattleState(State):
                 gx, gy = mx // TILE_SIZE, my // TILE_SIZE
                 self.hover_tile = (gx, gy) if 0 <= gx < GRID_WIDTH and 0 <= gy < GRID_HEIGHT else None
 
-            # only allow player actions in player phase
+            # only during player phase:
             elif self.phase == "player" and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
                 mx, my = e.pos
                 gx, gy = mx // TILE_SIZE, my // TILE_SIZE
 
                 clicked = next((u for u in self.units if u.position == (gx, gy)), None)
-                selected = [u for u in self.units if u.selected]
+                selected = next((u for u in self.units if u.selected), None)
 
-                # select your own unit
+                # 1) select your own
                 if clicked and clicked.team == "player":
-                    for u in self.units: u.selected = False
+                    for u in self.units:
+                        u.selected = False
                     clicked.selected = True
 
-                # attack an enemy in range
+                # 2) attack if in range and not yet attacked
                 elif selected and clicked and clicked.team != "player":
-                    attacker = selected[0]
-                    dist = abs(gx - attacker.position[0]) + abs(gy - attacker.position[1])
-                    if dist <= attacker.attack_range:
-                        attacker.attack(clicked)
+                    dist = abs(gx - selected.position[0]) + abs(gy - selected.position[1])
+                    if dist <= selected.attack_range and not selected.has_attacked:
+                        selected.attack(clicked)
                         if not clicked.is_alive():
                             self.units.remove(clicked)
 
-                # move to an empty tile
+                # 3) move if in range and not yet moved
                 elif selected and not clicked:
-                    mover = selected[0]
-                    dist = abs(gx - mover.position[0]) + abs(gy - mover.position[1])
+                    dist = abs(gx - selected.position[0]) + abs(gy - selected.position[1])
                     occupied = any(u.position == (gx, gy) for u in self.units)
-                    if dist <= mover.movement and not occupied:
-                        mover.position = (gx, gy)
+                    if dist <= selected.movement and not occupied and not selected.has_moved:
+                        selected.position = (gx, gy)
+                        selected.has_moved = True
 
     def update(self, dt):
-        # run enemy AI once when it's enemy phase
         if self.phase == "enemy" and not self.enemy_processed:
             self._run_enemy_ai()
             self.enemy_processed = True
+            # reset flags for next player phase
+            for u in self.units:
+                u.has_moved = False
+                u.has_attacked = False
             self.phase = "player"
 
     def _run_enemy_ai(self):

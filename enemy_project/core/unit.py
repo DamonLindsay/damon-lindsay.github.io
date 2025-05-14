@@ -61,6 +61,10 @@ class Unit:
         self.selected = False
         self.abilities = abilities or []
 
+        # per‐turn flags
+        self.has_moved = False
+        self.has_attacked = False
+
         # load sprite if provided
         if sprite_file:
             path = os.path.join(IMAGES_DIR, sprite_file)
@@ -92,16 +96,13 @@ class Unit:
         return self.current_wounds > 0
 
     def attack(self, target):
-        """Resolve all attacks vs a target unit and subtract unsaved wounds."""
         total_unsaved = 0
         for _ in range(self.attacks):
-            if not to_hit_roll(self.ws):
-                continue
-            if not wound_roll(self.strength, target.toughness):
-                continue
-            if saving_throw(target.save):
-                continue
+            if not to_hit_roll(self.ws):          continue
+            if not wound_roll(self.strength, target.toughness): continue
+            if saving_throw(target.save):         continue
             total_unsaved += 1
 
         target.current_wounds -= total_unsaved
+        self.has_attacked = True
         print(f"{self.name} hits!: unsaved wounds = {total_unsaved}")
