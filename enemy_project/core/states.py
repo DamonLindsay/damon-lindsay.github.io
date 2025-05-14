@@ -189,14 +189,16 @@ class BattleState(State):
                         mover.position = (gx, gy)
 
     def draw(self, surface):
-        # draw phase label
+        # 1) Clear the background
+        surface.fill((30, 30, 30))
+
+        # 2) Draw phase label on top
         font_hdr = pygame.font.Font(None, 36)
         text = "Player Turn" if self.phase == "player" else "Enemy Turn"
         lbl = font_hdr.render(text, True, (255, 255, 255))
         surface.blit(lbl, (10, 10))
 
-        # background & grid
-        surface.fill((30, 30, 30))
+        # 3) Draw grid
         for y in range(GRID_HEIGHT):
             for x in range(GRID_WIDTH):
                 pygame.draw.rect(
