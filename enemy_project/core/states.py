@@ -165,7 +165,7 @@ class BattleState(State):
         if selected:
             u = selected[0]
             overlay = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
-            overlay.fill((0, 255, 0, 80))  # semi-transparent green
+            overlay.fill((0, 255, 0, 80))
             ux, uy = u.position
             for x in range(GRID_WIDTH):
                 for y in range(GRID_HEIGHT):
@@ -183,9 +183,21 @@ class BattleState(State):
         pygame.draw.line(surface, (100, 100, 100),
                          (panel_x, 0), (panel_x, SCREEN_HEIGHT), 2)
 
-        selected = [u for u in self.units if u.selected]
+        font = pygame.font.Font(None, 28)
+        y_offset = 20
+
         if selected:
             u = selected[0]
+
+            # Draw unit sprite preview
+            if u.sprite:
+                preview_size = TILE_SIZE * 1.5
+                scaled = pygame.transform.scale(u.sprite, (int(preview_size), int(preview_size)))
+                rect = scaled.get_rect(center=(panel_x + STAT_PANEL_WIDTH // 2, y_offset + preview_size // 2))
+                surface.blit(scaled, rect)
+                y_offset += preview_size + 10
+
+            # Text info
             lines = [
                 f"Name:     {u.name}",
                 f"HP:       {u.hp}",
@@ -195,7 +207,6 @@ class BattleState(State):
         else:
             lines = ["No unit selected"]
 
-        font = pygame.font.Font(None, 28)
         for idx, text in enumerate(lines):
             lbl = font.render(text, True, (200, 200, 200))
-            surface.blit(lbl, (panel_x + 10, 20 + idx * 35))
+            surface.blit(lbl, (panel_x + 10, y_offset + idx * 35))
