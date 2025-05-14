@@ -3,6 +3,7 @@
 import pygame
 from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT, STAT_PANEL_WIDTH
 from .unit import Unit
+from .combat import to_hit_roll, wound_roll, saving_throw  # if you need them
 
 
 class State:
@@ -105,12 +106,12 @@ class PvESetup(State):
 
 
 class BattleState(State):
-    """Battlefield: turn phases, grid, highlights, units, and stats."""
+    """Battlefield: turn phases, grid, highlights, units, stats, and simple enemy AI."""
 
     def __init__(self, game):
         super().__init__(game)
-        # turn phase: "player" or "enemy"
         self.phase = "player"
+        self.enemy_processed = True  # so AI only runs when we flip phase
         self.units = [
             Unit(
                 name="Tactical Marine",
@@ -138,7 +139,6 @@ class BattleState(State):
 
     def handle_events(self, events):
         for e in events:
-            # quit / back to menu
             if e.type == pygame.QUIT:
                 self.game.running = False
 
@@ -146,19 +146,17 @@ class BattleState(State):
                 if e.key == pygame.K_ESCAPE:
                     from .states import MainMenu
                     self.game.state = MainMenu(self.game)
-
-                # end turn on E, only in player phase
                 elif e.key == pygame.K_e and self.phase == "player":
+                    # end player turn → start enemy turn
                     self.phase = "enemy"
-                    # (enemy AI will trigger later)
+                    self.enemy_processed = False
 
-            # track hover always (for UI)
             elif e.type == pygame.MOUSEMOTION:
                 mx, my = e.pos
                 gx, gy = mx // TILE_SIZE, my // TILE_SIZE
                 self.hover_tile = (gx, gy) if 0 <= gx < GRID_WIDTH and 0 <= gy < GRID_HEIGHT else None
 
-            # only allow clicks in player phase
+            # only allow player actions in player phase
             elif self.phase == "player" and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
                 mx, my = e.pos
                 gx, gy = mx // TILE_SIZE, my // TILE_SIZE
@@ -166,12 +164,12 @@ class BattleState(State):
                 clicked = next((u for u in self.units if u.position == (gx, gy)), None)
                 selected = [u for u in self.units if u.selected]
 
-                # select your own
+                # select your own unit
                 if clicked and clicked.team == "player":
                     for u in self.units: u.selected = False
                     clicked.selected = True
 
-                # attack enemy
+                # attack an enemy in range
                 elif selected and clicked and clicked.team != "player":
                     attacker = selected[0]
                     dist = abs(gx - attacker.position[0]) + abs(gy - attacker.position[1])
@@ -180,7 +178,7 @@ class BattleState(State):
                         if not clicked.is_alive():
                             self.units.remove(clicked)
 
-                # move
+                # move to an empty tile
                 elif selected and not clicked:
                     mover = selected[0]
                     dist = abs(gx - mover.position[0]) + abs(gy - mover.position[1])
@@ -188,15 +186,62 @@ class BattleState(State):
                     if dist <= mover.movement and not occupied:
                         mover.position = (gx, gy)
 
+    def update(self, dt):
+        # run enemy AI once when it's enemy phase
+        if self.phase == "enemy" and not self.enemy_processed:
+            self._run_enemy_ai()
+            self.enemy_processed = True
+            self.phase = "player"
+
+    def _run_enemy_ai(self):
+        # For each enemy unit, move toward nearest player, then attack if in range
+        player_units = [u for u in self.units if u.team == "player"]
+        for enemy in [u for u in self.units if u.team == "enemy"]:
+            if not player_units:
+                break
+
+            # find nearest player
+            target = min(player_units,
+                         key=lambda pu: abs(pu.position[0] - enemy.position[0]) +
+                                        abs(pu.position[1] - enemy.position[1]))
+            ex, ey = enemy.position
+            tx, ty = target.position
+            dist = abs(tx - ex) + abs(ty - ey)
+
+            # move toward if not in attack range
+            if dist > enemy.attack_range:
+                # simple step: move one tile along the larger delta
+                dx, dy = tx - ex, ty - ey
+                step_x = 1 if dx > 0 else -1 if dx < 0 else 0
+                step_y = 1 if dy > 0 else -1 if dy < 0 else 0
+                # prefer x movement if farther
+                if abs(dx) >= abs(dy):
+                    new_pos = (ex + step_x, ey)
+                else:
+                    new_pos = (ex, ey + step_y)
+
+                # ensure tile free
+                if (0 <= new_pos[0] < GRID_WIDTH and
+                        0 <= new_pos[1] < GRID_HEIGHT and
+                        not any(u.position == new_pos for u in self.units)):
+                    enemy.position = new_pos
+                    dist -= 1  # update distance
+
+            # attack if now in range
+            if abs(tx - enemy.position[0]) + abs(ty - enemy.position[1]) <= enemy.attack_range:
+                enemy.attack(target)
+                if not target.is_alive():
+                    self.units.remove(target)
+                    player_units.remove(target)
+
     def draw(self, surface):
-        # 1) Clear the background
+        # clear bg
         surface.fill((30, 30, 30))
 
-        # 2) Draw phase label on top
+        # phase label
         font_hdr = pygame.font.Font(None, 36)
         text = "Player Turn" if self.phase == "player" else "Enemy Turn"
-        lbl = font_hdr.render(text, True, (255, 255, 255))
-        surface.blit(lbl, (10, 10))
+        surface.blit(font_hdr.render(text, True, (255, 255, 255)), (10, 10))
 
         # 3) Draw grid
         for y in range(GRID_HEIGHT):
