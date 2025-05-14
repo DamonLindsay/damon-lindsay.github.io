@@ -292,35 +292,63 @@ class BattleState(State):
                 else:
                     pygame.draw.circle(surface, oc, (px, py), TILE_SIZE // 3 + 4, 3)
 
-        # stats panel
-        panel_x = SCREEN_WIDTH - STAT_PANEL_WIDTH
-        pygame.draw.rect(surface, (20, 20, 20),
-                         (panel_x, 0, STAT_PANEL_WIDTH, SCREEN_HEIGHT))
-        pygame.draw.line(surface, (100, 100, 100),
-                         (panel_x, 0), (panel_x, SCREEN_HEIGHT), 2)
+                # ── Stats Panel ─────────────────────────────────────────────
+                panel_x = SCREEN_WIDTH - STAT_PANEL_WIDTH
+                padding = 10
+                font = pygame.font.Font(None, 28)
 
-        font = pygame.font.Font(None, 28)
-        yoff = 20
-        if sel:
-            u = sel[0]
-            # sprite preview
-            if u.sprite:
-                ps = int(TILE_SIZE * 1.5)
-                img = pygame.transform.scale(u.sprite, (ps, ps))
-                rect = img.get_rect(center=(panel_x + STAT_PANEL_WIDTH // 2, yoff + ps // 2))
-                surface.blit(img, rect)
-                yoff += ps + 10
-            # stat lines
-            lines = [
-                f"WS: {u.ws}+   BS: {u.bs}+",
-                f"S: {u.strength}   T: {u.toughness}",
-                f"W: {u.current_wounds}/{u.max_wounds}",
-                f"A: {u.attacks}   Ld: {u.leadership}",
-                f"Sv: {u.save}+",
-            ]
-        else:
-            lines = ["No unit selected"]
+                # background
+                pygame.draw.rect(surface, (20, 20, 20),
+                                 (panel_x, 0, STAT_PANEL_WIDTH, SCREEN_HEIGHT))
+                pygame.draw.line(surface, (100, 100, 100),
+                                 (panel_x, 0), (panel_x, SCREEN_HEIGHT), 2)
 
-        for i, txt in enumerate(lines):
-            lbl = font.render(txt, True, (200, 200, 200))
-            surface.blit(lbl, (panel_x + 10, yoff + i * 35))
+                selected = [u for u in self.units if u.selected]
+                if selected:
+                    u = selected[0]
+
+                    # 1) Portrait slot
+                    portrait_size = STAT_PANEL_WIDTH - padding * 2
+                    portrait_rect = pygame.Rect(
+                        panel_x + padding,
+                        padding,
+                        portrait_size,
+                        portrait_size
+                    )
+                    # optional background frame
+                    pygame.draw.rect(surface, (40, 40, 40), portrait_rect)
+                    if u.sprite:
+                        sprite_scaled = pygame.transform.scale(u.sprite,
+                                                               (portrait_size, portrait_size))
+                        surface.blit(sprite_scaled, portrait_rect.topleft)
+
+                    # 2) Build stat lines
+                    stats = [
+                        ("WS", f"{u.ws}+"),
+                        ("BS", f"{u.bs}+"),
+                        ("S", str(u.strength)),
+                        ("T", str(u.toughness)),
+                        ("W", f"{u.current_wounds}/{u.max_wounds}"),
+                        ("A", str(u.attacks)),
+                        ("Ld", str(u.leadership)),
+                        ("Sv", f"{u.save}+"),
+                    ]
+                    lines = [f"{label}: {value}" for label, value in stats]
+
+                    # 3) Dynamic vertical spacing
+                    used_height = padding + portrait_size + padding
+                    remaining = SCREEN_HEIGHT - used_height - padding
+                    line_count = len(lines)
+                    line_spacing = remaining // (line_count + 1)
+
+                    y = used_height + line_spacing
+                    for line in lines:
+                        lbl = font.render(line, True, (200, 200, 200))
+                        surface.blit(lbl, (panel_x + padding, y))
+                        y += line_spacing
+
+                else:
+                    # No selection fallback
+                    msg = "No unit selected"
+                    lbl = font.render(msg, True, (200, 200, 200))
+                    surface.blit(lbl, (panel_x + padding, SCREEN_HEIGHT // 2))
