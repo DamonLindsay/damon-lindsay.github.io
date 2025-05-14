@@ -132,12 +132,43 @@ class BattleState(State):
         pass
 
     def draw(self, surface):
+        # Background
         surface.fill((30, 30, 30))
-        # draw grid
+
+        # Draw grid
         for y in range(GRID_HEIGHT):
             for x in range(GRID_WIDTH):
                 rect = pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
                 pygame.draw.rect(surface, (50, 50, 50), rect, 1)
-        # draw units
+
+        # Draw units
         for u in self.units:
             u.draw(surface)
+
+        # Draw stats panel
+        from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, STAT_PANEL_WIDTH
+
+        panel_x = SCREEN_WIDTH - STAT_PANEL_WIDTH
+        panel = pygame.Rect(panel_x, 0, STAT_PANEL_WIDTH, SCREEN_HEIGHT)
+        pygame.draw.rect(surface, (20, 20, 20), panel)
+        pygame.draw.line(surface, (100, 100, 100),
+                         (panel_x, 0), (panel_x, SCREEN_HEIGHT), 2)
+
+        # Gather lines to display
+        selected = [u for u in self.units if u.selected]
+        if selected:
+            u = selected[0]
+            lines = [
+                f"Name:     {u.name}",
+                f"HP:       {u.hp}",
+                f"Attack:   {u.attack}",
+                f"Movement: {u.movement}",
+            ]
+        else:
+            lines = ["No unit selected"]
+
+        # Render lines
+        font = pygame.font.Font(None, 28)
+        for idx, text in enumerate(lines):
+            lbl = font.render(text, True, (200, 200, 200))
+            surface.blit(lbl, (panel_x + 10, 20 + idx * 35))

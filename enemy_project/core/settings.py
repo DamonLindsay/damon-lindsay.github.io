@@ -24,3 +24,8 @@ TILE_SIZE = 64
 # Number of tiles horizontally and vertically
 GRID_WIDTH = SCREEN_WIDTH // TILE_SIZE
 GRID_HEIGHT = SCREEN_HEIGHT // TILE_SIZE
+
+# ── UI PANEL ───────────────────────────────────────────────────────────────────
+
+# Width of the right-hand stats panel
+STAT_PANEL_WIDTH = 300
