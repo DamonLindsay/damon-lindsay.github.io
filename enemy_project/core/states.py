@@ -1,3 +1,5 @@
+# core/states.py
+
 import pygame
 from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT
 from .unit import Unit
@@ -11,9 +13,9 @@ class State:
 
     def handle_events(self, events): pass
 
-    def update(self, dt): pass
+    def update(self, dt):       pass
 
-    def draw(self, surface): pass
+    def draw(self, surface):    pass
 
 
 class MainMenu(State):
@@ -110,51 +112,72 @@ class PvESetup(State):
 
 
 class BattleState(State):
-    """Battlefield: draws grid and units, allows selection by mouse."""
+    """Battlefield: draws grid, units, and allows click-to-move within range."""
 
     def __init__(self, game):
         super().__init__(game)
-        self.units = [Unit("Space Marine", hp=10, attack=3, movement=5, position=(1, 1))]
+        # example unit at 1,1
+        self.units = [
+            Unit("Space Marine", hp=10, attack=3, movement=5, position=(1, 1))
+        ]
 
     def handle_events(self, events):
         for e in events:
             if e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
                 from .states import MainMenu
                 self.game.state = MainMenu(self.game)
+
             elif e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
                 mx, my = e.pos
                 gx, gy = mx // TILE_SIZE, my // TILE_SIZE
-                # select/deselect
-                for u in self.units:
-                    u.selected = (u.position == (gx, gy))
+
+                # see if we clicked on a unit
+                clicked_unit = next((u for u in self.units if u.position == (gx, gy)), None)
+                if clicked_unit:
+                    # select this unit
+                    for u in self.units:
+                        u.selected = False
+                    clicked_unit.selected = True
+
+                else:
+                    # clicked empty tile: if we have exactly one selected unit, try to move it
+                    selected = [u for u in self.units if u.selected]
+                    if selected:
+                        u = selected[0]
+                        # ensure tile not occupied
+                        occupied = any(o.position == (gx, gy) for o in self.units)
+                        if not occupied:
+                            dx = abs(gx - u.position[0])
+                            dy = abs(gy - u.position[1])
+                            if dx + dy <= u.movement:
+                                u.position = (gx, gy)
+                            # else: ignore or play invalid move sound
 
     def update(self, dt):
         pass
 
     def draw(self, surface):
-        # Background
+        # background
         surface.fill((30, 30, 30))
 
-        # Draw grid
+        # grid
         for y in range(GRID_HEIGHT):
             for x in range(GRID_WIDTH):
                 rect = pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
                 pygame.draw.rect(surface, (50, 50, 50), rect, 1)
 
-        # Draw units
+        # units
         for u in self.units:
             u.draw(surface)
 
-        # Draw stats panel
-        from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, STAT_PANEL_WIDTH
-
+        # stats panel (unchanged)
+        from .settings import STAT_PANEL_WIDTH
         panel_x = SCREEN_WIDTH - STAT_PANEL_WIDTH
         panel = pygame.Rect(panel_x, 0, STAT_PANEL_WIDTH, SCREEN_HEIGHT)
         pygame.draw.rect(surface, (20, 20, 20), panel)
         pygame.draw.line(surface, (100, 100, 100),
                          (panel_x, 0), (panel_x, SCREEN_HEIGHT), 2)
 
-        # Gather lines to display
         selected = [u for u in self.units if u.selected]
         if selected:
             u = selected[0]
@@ -167,7 +190,6 @@ class BattleState(State):
         else:
             lines = ["No unit selected"]
 
-        # Render lines
         font = pygame.font.Font(None, 28)
         for idx, text in enumerate(lines):
             lbl = font.render(text, True, (200, 200, 200))
