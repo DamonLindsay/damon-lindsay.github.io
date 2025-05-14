@@ -1,8 +1,6 @@
-# core/states.py
-
 import pygame
-from .settings import SCREEN_WIDTH, SCREEN_HEIGHT
-from .settings import SCREEN_WIDTH, SCREEN_HEIGHT
+from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT
+from .unit import Unit
 
 
 class State:
@@ -11,14 +9,11 @@ class State:
     def __init__(self, game):
         self.game = game
 
-    def handle_events(self, events):
-        pass
+    def handle_events(self, events): pass
 
-    def update(self, dt):
-        pass
+    def update(self, dt): pass
 
-    def draw(self, surface):
-        pass
+    def draw(self, surface): pass
 
 
 class MainMenu(State):
@@ -42,7 +37,7 @@ class MainMenu(State):
                     if choice == "Start PvE":
                         from .states import PvESetup
                         self.game.state = PvESetup(self.game)
-                    else:  # Quit
+                    else:
                         self.game.running = False
 
     def update(self, dt):
@@ -84,18 +79,14 @@ class PvESetup(State):
                 elif e.key == pygame.K_DOWN:
                     self.selected_field = (self.selected_field + 1) % len(self.fields)
                 elif e.key == pygame.K_LEFT:
-                    field = self.fields[self.selected_field]
-                    opts = self.options[field]
-                    self.selected_option[field] = (self.selected_option[field] - 1) % len(opts)
+                    f = self.fields[self.selected_field]
+                    self.selected_option[f] = (self.selected_option[f] - 1) % len(self.options[f])
                 elif e.key == pygame.K_RIGHT:
-                    field = self.fields[self.selected_field]
-                    opts = self.options[field]
-                    self.selected_option[field] = (self.selected_option[field] + 1) % len(opts)
+                    f = self.fields[self.selected_field]
+                    self.selected_option[f] = (self.selected_option[f] + 1) % len(self.options[f])
                 elif e.key == pygame.K_RETURN:
-                    # TODO: start the battle with these settings
-                    # For now, go back to MainMenu
-                    from .states import MainMenu
-                    self.game.state = MainMenu(self.game)
+                    from .states import BattleState
+                    self.game.state = BattleState(self.game)
                 elif e.key == pygame.K_ESCAPE:
                     from .states import MainMenu
                     self.game.state = MainMenu(self.game)
@@ -105,16 +96,48 @@ class PvESetup(State):
 
     def draw(self, surface):
         surface.fill((0, 0, 0))
-        y = SCREEN_HEIGHT // 2 - len(self.fields) * 25
-        for idx, field in enumerate(self.fields):
-            is_sel = (idx == self.selected_field)
-            color = (255, 255, 255) if is_sel else (150, 150, 150)
-            text = f"{field}: {self.options[field][self.selected_option[field]]}"
-            label = self.font.render(text, True, color)
-            rect = label.get_rect(center=(SCREEN_WIDTH // 2, y + idx * 60))
-            surface.blit(label, rect)
-        # hint
-        hint = "Use ↑↓ to choose field, ←→ to change, Enter to confirm, Esc to cancel"
-        hint_lbl = self.font.render(hint, True, (100, 100, 100))
-        hint_rect = hint_lbl.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 40))
-        surface.blit(hint_lbl, hint_rect)
+        y0 = SCREEN_HEIGHT // 2 - len(self.fields) * 30
+        for i, f in enumerate(self.fields):
+            sel = (i == self.selected_field)
+            color = (255, 255, 255) if sel else (150, 150, 150)
+            txt = f"{f}: {self.options[f][self.selected_option[f]]}"
+            lbl = self.font.render(txt, True, color)
+            rect = lbl.get_rect(center=(SCREEN_WIDTH // 2, y0 + i * 60))
+            surface.blit(lbl, rect)
+        hint = "↑↓ select field, ←→ cycle, Enter to battle, Esc to menu"
+        hlp = self.font.render(hint, True, (100, 100, 100))
+        surface.blit(hlp, hlp.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 30)))
+
+
+class BattleState(State):
+    """Battlefield: draws grid and units, allows selection by mouse."""
+
+    def __init__(self, game):
+        super().__init__(game)
+        self.units = [Unit("Space Marine", hp=10, attack=3, movement=5, position=(1, 1))]
+
+    def handle_events(self, events):
+        for e in events:
+            if e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
+                from .states import MainMenu
+                self.game.state = MainMenu(self.game)
+            elif e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
+                mx, my = e.pos
+                gx, gy = mx // TILE_SIZE, my // TILE_SIZE
+                # select/deselect
+                for u in self.units:
+                    u.selected = (u.position == (gx, gy))
+
+    def update(self, dt):
+        pass
+
+    def draw(self, surface):
+        surface.fill((30, 30, 30))
+        # draw grid
+        for y in range(GRID_HEIGHT):
+            for x in range(GRID_WIDTH):
+                rect = pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+                pygame.draw.rect(surface, (50, 50, 50), rect, 1)
+        # draw units
+        for u in self.units:
+            u.draw(surface)
