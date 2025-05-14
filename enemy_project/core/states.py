@@ -135,32 +135,53 @@ class BattleState(State):
 
     def handle_events(self, events):
         for e in events:
-            if e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
+            # Quit or return to menu
+            if e.type == pygame.QUIT:
+                self.game.running = False
+            elif e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
                 from .states import MainMenu
                 self.game.state = MainMenu(self.game)
 
+            # Track which tile the mouse is over
             elif e.type == pygame.MOUSEMOTION:
                 mx, my = e.pos
                 gx, gy = mx // TILE_SIZE, my // TILE_SIZE
-                self.hover_tile = (gx, gy) if 0 <= gx < GRID_WIDTH and 0 <= gy < GRID_HEIGHT else None
+                if 0 <= gx < GRID_WIDTH and 0 <= gy < GRID_HEIGHT:
+                    self.hover_tile = (gx, gy)
+                else:
+                    self.hover_tile = None
 
+            # Left-click → select, move, or attack
             elif e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
                 mx, my = e.pos
                 gx, gy = mx // TILE_SIZE, my // TILE_SIZE
 
+                # Find any unit on that tile
                 clicked = next((u for u in self.units if u.position == (gx, gy)), None)
+                selected = [u for u in self.units if u.selected]
+
+                # 1) If you clicked one of your own units, select it
                 if clicked and clicked.team == "player":
-                    # select/deselect
-                    for u in self.units: u.selected = False
+                    for u in self.units:
+                        u.selected = False
                     clicked.selected = True
-                else:
-                    sel = [u for u in self.units if u.selected]
-                    if sel:
-                        u = sel[0]
-                        if not any(o.position == (gx, gy) for o in self.units):
-                            dx, dy = abs(gx - u.position[0]), abs(gy - u.position[1])
-                            if dx + dy <= u.movement:
-                                u.position = (gx, gy)
+
+                # 2) Else if you have a selected unit, try to attack an enemy
+                elif selected and clicked and clicked.team != selected[0].team:
+                    attacker = selected[0]
+                    dist = abs(gx - attacker.position[0]) + abs(gy - attacker.position[1])
+                    if dist <= attacker.attack_range:
+                        attacker.attack(clicked)
+                        if not clicked.is_alive():
+                            self.units.remove(clicked)
+
+                # 3) Else if you have a selected unit, try to move it to an empty tile
+                elif selected and not clicked:
+                    mover = selected[0]
+                    dist = abs(gx - mover.position[0]) + abs(gy - mover.position[1])
+                    occupied = any(u.position == (gx, gy) for u in self.units)
+                    if dist <= mover.movement and not occupied:
+                        mover.position = (gx, gy)
 
     def draw(self, surface):
         # background & grid
@@ -182,6 +203,17 @@ class BattleState(State):
             for x in range(GRID_WIDTH):
                 for y in range(GRID_HEIGHT):
                     if abs(x - ux) + abs(y - uy) <= u.movement:
+                        surface.blit(overlay, (x * TILE_SIZE, y * TILE_SIZE))
+
+        # Attack-range highlight (red)
+        if sel:
+            u = sel[0]
+            overlay = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
+            overlay.fill((255, 0, 0, 80))
+            ux, uy = u.position
+            for x in range(GRID_WIDTH):
+                for y in range(GRID_HEIGHT):
+                    if abs(x - ux) + abs(y - uy) <= u.attack_range:
                         surface.blit(overlay, (x * TILE_SIZE, y * TILE_SIZE))
 
         # hover tile highlight
