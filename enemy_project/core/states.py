@@ -124,6 +124,7 @@ class BattleState(State):
             Unit("Ork", 8, 2, 4, (5, 2), team="enemy", sprite_file="ork.png"),
             Unit("Tyranid", 12, 4, 3, (6, 4), team="enemy", sprite_file="tyranid.png"),
         ]
+        self.hover_tile = None  # (x, y) grid coordinates of tile under mouse
 
     def handle_events(self, events):
         for e in events:
@@ -148,6 +149,13 @@ class BattleState(State):
                             dy = abs(gy - u.position[1])
                             if dx + dy <= u.movement:
                                 u.position = (gx, gy)
+            elif e.type == pygame.MOUSEMOTION:
+                mx, my = e.pos
+                gx, gy = mx // TILE_SIZE, my // TILE_SIZE
+                if 0 <= gx < GRID_WIDTH and 0 <= gy < GRID_HEIGHT:
+                    self.hover_tile = (gx, gy)
+                else:
+                    self.hover_tile = None
 
     def update(self, dt):
         pass
@@ -173,6 +181,12 @@ class BattleState(State):
                 for y in range(GRID_HEIGHT):
                     if abs(x - ux) + abs(y - uy) <= u.movement:
                         surface.blit(overlay, (x * TILE_SIZE, y * TILE_SIZE))
+
+        # Draw hover tile
+        if self.hover_tile:
+            x, y = self.hover_tile
+            hover_rect = pygame.Rect(x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE)
+            pygame.draw.rect(surface, (255, 255, 255), hover_rect, 2)
 
         # Draw units
         for u in self.units:
