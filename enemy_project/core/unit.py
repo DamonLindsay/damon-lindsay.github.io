@@ -15,8 +15,12 @@ class Unit:
     def __init__(
             self,
             name,
-            ws, bs, strength, toughness, wounds, attacks,
-            leadership, save, position,
+            ws, bs,
+            strength, toughness,
+            wounds, attacks,
+            movement,
+            leadership, save,
+            position,
             team="player",
             sprite_file=None,
             abilities=None
@@ -29,6 +33,7 @@ class Unit:
         toughness:   Toughness
         wounds:      Wounds (number of wounds before removal)
         attacks:     Number of attacks in melee
+        movement:    Movement allowance (tiles per turn)
         leadership:  Leadership (morale tests)
         save:        Armor Save (e.g. 3 means 3+ to save)
         position:    (grid_x, grid_y)
@@ -44,6 +49,7 @@ class Unit:
         self.max_wounds = wounds
         self.current_wounds = wounds
         self.attacks = attacks
+        self.movement = movement
         self.leadership = leadership
         self.save = save
         self.position = position
