@@ -4,22 +4,54 @@ import os
 import pygame
 from .settings import TILE_SIZE, IMAGES_DIR
 
+# Team color mapping
 TEAM_COLORS = {
-    "player": (0, 128, 255),  # Blue
-    "enemy": (200, 50, 50),  # Red
+    "player": (0, 128, 255),
+    "enemy": (200, 50, 50),
 }
 
 
 class Unit:
-    def __init__(self, name, hp, attack, movement, position, team="player", sprite_file=None):
+    def __init__(
+            self,
+            name,
+            ws, bs, strength, toughness, wounds, attacks,
+            leadership, save, position,
+            team="player",
+            sprite_file=None,
+            abilities=None
+    ):
+        """
+        name:        string
+        ws:          Weapon Skill (to-hit in melee)
+        bs:          Ballistic Skill (to-hit in shooting)
+        strength:    Strength
+        toughness:   Toughness
+        wounds:      Wounds (number of wounds before removal)
+        attacks:     Number of attacks in melee
+        leadership:  Leadership (morale tests)
+        save:        Armor Save (e.g. 3 means 3+ to save)
+        position:    (grid_x, grid_y)
+        team:        "player" or "enemy"
+        sprite_file: optional sprite filename in assets/images
+        abilities:   list of special rules (strings)
+        """
         self.name = name
-        self.hp = hp
-        self.attack = attack
-        self.movement = movement
+        self.ws = ws
+        self.bs = bs
+        self.strength = strength
+        self.toughness = toughness
+        self.max_wounds = wounds
+        self.current_wounds = wounds
+        self.attacks = attacks
+        self.leadership = leadership
+        self.save = save
         self.position = position
         self.team = team
         self.selected = False
+        self.abilities = abilities or []
 
+        # load sprite if provided
         if sprite_file:
             path = os.path.join(IMAGES_DIR, sprite_file)
             try:
@@ -32,15 +64,19 @@ class Unit:
             self.sprite = None
 
     def draw(self, surface):
-        grid_x, grid_y = self.position
-        px = grid_x * TILE_SIZE + TILE_SIZE // 2
-        py = grid_y * TILE_SIZE + TILE_SIZE // 2
+        """Draw sprite if available, else draw a colored circle."""
+        gx, gy = self.position
+        px = gx * TILE_SIZE + TILE_SIZE // 2
+        py = gy * TILE_SIZE + TILE_SIZE // 2
 
         if self.sprite:
             rect = self.sprite.get_rect(center=(px, py))
             surface.blit(self.sprite, rect)
         else:
-            base = TEAM_COLORS.get(self.team, (150, 150, 150))
-            color = (255, 255, 0) if self.selected else base
+            base_color = TEAM_COLORS.get(self.team, (150, 150, 150))
+            color = (255, 255, 0) if self.selected else base_color
             radius = TILE_SIZE // 3
             pygame.draw.circle(surface, color, (px, py), radius)
+
+    def is_alive(self):
+        return self.current_wounds > 0

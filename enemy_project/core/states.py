@@ -120,9 +120,17 @@ class BattleState(State):
     def __init__(self, game):
         super().__init__(game)
         self.units = [
-            Unit("Space Marine", 10, 3, 5, (1, 1), team="player", sprite_file="space_marine.png"),
-            Unit("Ork", 8, 2, 4, (5, 2), team="enemy", sprite_file="ork.png"),
-            Unit("Tyranid", 12, 4, 3, (6, 4), team="enemy", sprite_file="tyranid.png"),
+            Unit(
+                name="Tactical Marine",
+                ws=3, bs=3, strength=4, toughness=4,
+                wounds=2, attacks=1,
+                leadership=7, save=3,
+                position=(1, 1),
+                team="player",
+                sprite_file="tactical_marine.png",
+                abilities=["And They Shall Know No Fear"]
+            ),
+            # …and some enemies
         ]
         self.hover_tile = None  # (x, y) grid coordinates of tile under mouse
 
@@ -192,6 +200,21 @@ class BattleState(State):
         for u in self.units:
             u.draw(surface)
 
+        # Outline hovered unit
+        if self.hover_tile:
+            hovered = next((u for u in self.units if u.position == self.hover_tile), None)
+            if hovered:
+                # compute pixel center
+                px = self.hover_tile[0] * TILE_SIZE + TILE_SIZE // 2
+                py = self.hover_tile[1] * TILE_SIZE + TILE_SIZE // 2
+                outline_color = (255, 255, 0)  # subtle yellow
+                if hovered.sprite:
+                    rect = hovered.sprite.get_rect(center=(px, py))
+                    pygame.draw.rect(surface, outline_color, rect, 3)
+                else:
+                    radius = TILE_SIZE // 3 + 4
+                    pygame.draw.circle(surface, outline_color, (px, py), radius, 3)
+
         # Draw stats panel
         panel_x = SCREEN_WIDTH - STAT_PANEL_WIDTH
         panel = pygame.Rect(panel_x, 0, STAT_PANEL_WIDTH, SCREEN_HEIGHT)
@@ -215,11 +238,14 @@ class BattleState(State):
 
             # Text info
             lines = [
-                f"Name:     {u.name}",
-                f"HP:       {u.hp}",
-                f"Attack:   {u.attack}",
-                f"Movement: {u.movement}",
+                f"WS: {u.ws}+  BS: {u.bs}+",
+                f"S: {u.strength}  T: {u.toughness}",
+                f"W: {u.current_wounds}/{u.max_wounds}",
+                f"A: {u.attacks}  Ld: {u.leadership}",
+                f"Sv: {u.save}+",
             ]
+            # then after that, list u.abilities below if any
+
         else:
             lines = ["No unit selected"]
 
