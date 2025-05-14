@@ -105,11 +105,12 @@ class PvESetup(State):
 
 
 class BattleState(State):
-    """Battlefield: grid, movement/hover/attack highlights, units and stats."""
+    """Battlefield: turn phases, grid, highlights, units, and stats."""
 
     def __init__(self, game):
         super().__init__(game)
-        # now including movement for each unit!
+        # turn phase: "player" or "enemy"
+        self.phase = "player"
         self.units = [
             Unit(
                 name="Tactical Marine",
@@ -117,6 +118,7 @@ class BattleState(State):
                 wounds=2, attacks=1, movement=5,
                 leadership=7, save=3,
                 position=(1, 1),
+                attack_range=1,
                 team="player",
                 sprite_file="tactical_marine.png",
                 abilities=["And They Shall Know No Fear"]
@@ -127,6 +129,7 @@ class BattleState(State):
                 wounds=1, attacks=2, movement=6,
                 leadership=6, save=6,
                 position=(5, 2),
+                attack_range=1,
                 team="enemy",
                 sprite_file="ork.png"
             ),
@@ -135,39 +138,41 @@ class BattleState(State):
 
     def handle_events(self, events):
         for e in events:
-            # Quit or return to menu
+            # quit / back to menu
             if e.type == pygame.QUIT:
                 self.game.running = False
-            elif e.type == pygame.KEYDOWN and e.key == pygame.K_ESCAPE:
-                from .states import MainMenu
-                self.game.state = MainMenu(self.game)
 
-            # Track which tile the mouse is over
+            elif e.type == pygame.KEYDOWN:
+                if e.key == pygame.K_ESCAPE:
+                    from .states import MainMenu
+                    self.game.state = MainMenu(self.game)
+
+                # end turn on E, only in player phase
+                elif e.key == pygame.K_e and self.phase == "player":
+                    self.phase = "enemy"
+                    # (enemy AI will trigger later)
+
+            # track hover always (for UI)
             elif e.type == pygame.MOUSEMOTION:
                 mx, my = e.pos
                 gx, gy = mx // TILE_SIZE, my // TILE_SIZE
-                if 0 <= gx < GRID_WIDTH and 0 <= gy < GRID_HEIGHT:
-                    self.hover_tile = (gx, gy)
-                else:
-                    self.hover_tile = None
+                self.hover_tile = (gx, gy) if 0 <= gx < GRID_WIDTH and 0 <= gy < GRID_HEIGHT else None
 
-            # Left-click → select, move, or attack
-            elif e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
+            # only allow clicks in player phase
+            elif self.phase == "player" and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
                 mx, my = e.pos
                 gx, gy = mx // TILE_SIZE, my // TILE_SIZE
 
-                # Find any unit on that tile
                 clicked = next((u for u in self.units if u.position == (gx, gy)), None)
                 selected = [u for u in self.units if u.selected]
 
-                # 1) If you clicked one of your own units, select it
+                # select your own
                 if clicked and clicked.team == "player":
-                    for u in self.units:
-                        u.selected = False
+                    for u in self.units: u.selected = False
                     clicked.selected = True
 
-                # 2) Else if you have a selected unit, try to attack an enemy
-                elif selected and clicked and clicked.team != selected[0].team:
+                # attack enemy
+                elif selected and clicked and clicked.team != "player":
                     attacker = selected[0]
                     dist = abs(gx - attacker.position[0]) + abs(gy - attacker.position[1])
                     if dist <= attacker.attack_range:
@@ -175,7 +180,7 @@ class BattleState(State):
                         if not clicked.is_alive():
                             self.units.remove(clicked)
 
-                # 3) Else if you have a selected unit, try to move it to an empty tile
+                # move
                 elif selected and not clicked:
                     mover = selected[0]
                     dist = abs(gx - mover.position[0]) + abs(gy - mover.position[1])
@@ -184,6 +189,12 @@ class BattleState(State):
                         mover.position = (gx, gy)
 
     def draw(self, surface):
+        # draw phase label
+        font_hdr = pygame.font.Font(None, 36)
+        text = "Player Turn" if self.phase == "player" else "Enemy Turn"
+        lbl = font_hdr.render(text, True, (255, 255, 255))
+        surface.blit(lbl, (10, 10))
+
         # background & grid
         surface.fill((30, 30, 30))
         for y in range(GRID_HEIGHT):
