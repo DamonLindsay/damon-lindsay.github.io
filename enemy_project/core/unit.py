@@ -4,25 +4,22 @@ import os
 import pygame
 from .settings import TILE_SIZE, IMAGES_DIR
 
+TEAM_COLORS = {
+    "player": (0, 128, 255),  # Blue
+    "enemy": (200, 50, 50),  # Red
+}
+
 
 class Unit:
-    def __init__(self, name, hp, attack, movement, position, sprite_file=None):
-        """
-        name:        string
-        hp:          int
-        attack:      int
-        movement:    int (tiles per turn)
-        position:    (grid_x, grid_y)
-        sprite_file: filename in assets/images (e.g. "space_marine.png")
-        """
+    def __init__(self, name, hp, attack, movement, position, team="player", sprite_file=None):
         self.name = name
         self.hp = hp
         self.attack = attack
         self.movement = movement
         self.position = position
+        self.team = team
         self.selected = False
 
-        # Try loading sprite if provided
         if sprite_file:
             path = os.path.join(IMAGES_DIR, sprite_file)
             try:
@@ -35,20 +32,15 @@ class Unit:
             self.sprite = None
 
     def draw(self, surface):
-        """
-        Draws the unit. If sprite exists, blit it;
-        otherwise draw a colored circle.
-        """
         grid_x, grid_y = self.position
         px = grid_x * TILE_SIZE + TILE_SIZE // 2
         py = grid_y * TILE_SIZE + TILE_SIZE // 2
 
         if self.sprite:
-            # Center the sprite
             rect = self.sprite.get_rect(center=(px, py))
             surface.blit(self.sprite, rect)
         else:
-            # Fallback: circle
-            color = (0, 0, 255) if not self.selected else (255, 255, 0)
+            base = TEAM_COLORS.get(self.team, (150, 150, 150))
+            color = (255, 255, 0) if self.selected else base
             radius = TILE_SIZE // 3
             pygame.draw.circle(surface, color, (px, py), radius)

@@ -120,7 +120,9 @@ class BattleState(State):
     def __init__(self, game):
         super().__init__(game)
         self.units = [
-            Unit("Space Marine", hp=10, attack=3, movement=5, position=(1, 1), sprite_file="space_marine.png")
+            Unit("Space Marine", 10, 3, 5, (1, 1), team="player", sprite_file="space_marine.png"),
+            Unit("Ork", 8, 2, 4, (5, 2), team="enemy", sprite_file="ork.png"),
+            Unit("Tyranid", 12, 4, 3, (6, 4), team="enemy", sprite_file="tyranid.png"),
         ]
 
     def handle_events(self, events):
