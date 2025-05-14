@@ -228,15 +228,15 @@ class BattleState(State):
                     player_units.remove(target)
 
     def draw(self, surface):
-        # clear bg
+        # 1) Clear background
         surface.fill((30, 30, 30))
 
-        # phase label
+        # 2) Phase label
         font_hdr = pygame.font.Font(None, 36)
         text = "Player Turn" if self.phase == "player" else "Enemy Turn"
         surface.blit(font_hdr.render(text, True, (255, 255, 255)), (10, 10))
 
-        # 3) Draw grid
+        # 3) Grid
         for y in range(GRID_HEIGHT):
             for x in range(GRID_WIDTH):
                 pygame.draw.rect(
@@ -244,7 +244,7 @@ class BattleState(State):
                     (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE), 1
                 )
 
-        # movement range highlight
+        # 4) Movement range highlight and Attack-range highlight (red)
         sel = [u for u in self.units if u.selected]
         if sel:
             u = sel[0]
@@ -256,7 +256,6 @@ class BattleState(State):
                     if abs(x - ux) + abs(y - uy) <= u.movement:
                         surface.blit(overlay, (x * TILE_SIZE, y * TILE_SIZE))
 
-        # Attack-range highlight (red)
         if sel:
             u = sel[0]
             overlay = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
@@ -267,99 +266,95 @@ class BattleState(State):
                     if abs(x - ux) + abs(y - uy) <= u.attack_range:
                         surface.blit(overlay, (x * TILE_SIZE, y * TILE_SIZE))
 
-        # hover tile highlight
-        if self.hover_tile:
-            x, y = self.hover_tile
-            pygame.draw.rect(
-                surface, (255, 255, 255),
-                (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE), 2
-            )
+                # 5) Hover-tile highlight
+                if self.hover_tile:
+                    x, y = self.hover_tile
+                    pygame.draw.rect(
+                        surface, (255, 255, 255),
+                        (x * TILE_SIZE, y * TILE_SIZE, TILE_SIZE, TILE_SIZE), 2
+                    )
 
-        # draw units
-        for u in self.units:
-            u.draw(surface)
+                # 6) Units
+                for u in self.units:
+                    u.draw(surface)
 
-        # outline hovered unit
-        if self.hover_tile:
-            hovered = next((u for u in self.units if u.position == self.hover_tile), None)
-            if hovered:
-                px = self.hover_tile[0] * TILE_SIZE + TILE_SIZE // 2
-                py = self.hover_tile[1] * TILE_SIZE + TILE_SIZE // 2
-                oc = (255, 255, 0)
-                if hovered.sprite:
-                    rect = hovered.sprite.get_rect(center=(px, py))
-                    pygame.draw.rect(surface, oc, rect, 3)
+                # 7) Outline hovered unit
+                if self.hover_tile:
+                    hovered = next((u for u in self.units if u.position == self.hover_tile), None)
+                    if hovered:
+                        px = self.hover_tile[0] * TILE_SIZE + TILE_SIZE // 2
+                        py = self.hover_tile[1] * TILE_SIZE + TILE_SIZE // 2
+                        oc = (255, 255, 0)
+                        if hovered.sprite:
+                            rect = hovered.sprite.get_rect(center=(px, py))
+                            pygame.draw.rect(surface, oc, rect, 3)
+                        else:
+                            pygame.draw.circle(surface, oc, (px, py), TILE_SIZE // 3 + 4, 3)
+
+                # ── 8) Stats Panel (unconditionally at the top level) ──────────────
+                panel_x = SCREEN_WIDTH - STAT_PANEL_WIDTH
+                padding = 10
+
+                # panel background & divider
+                pygame.draw.rect(surface, (20, 20, 20),
+                                 (panel_x, 0, STAT_PANEL_WIDTH, SCREEN_HEIGHT))
+                pygame.draw.line(surface, (100, 100, 100),
+                                 (panel_x, 0), (panel_x, SCREEN_HEIGHT), 2)
+
+                # pick hover > selected
+                hover_unit = next((u for u in self.units if u.position == self.hover_tile),
+                                  None) if self.hover_tile else None
+                selected_unit = next((u for u in self.units if u.selected), None)
+                u = hover_unit or selected_unit
+
+                font_name = pygame.font.Font(None, 32)
+                font_stat = pygame.font.Font(None, 24)
+
+                if u:
+                    # Name
+                    name_lbl = font_name.render(u.name, True, (255, 255, 255))
+                    name_rect = name_lbl.get_rect(center=(
+                        panel_x + STAT_PANEL_WIDTH // 2,
+                        padding + name_lbl.get_height() // 2
+                    ))
+                    surface.blit(name_lbl, name_rect)
+
+                    # Portrait
+                    portrait_size = STAT_PANEL_WIDTH - padding * 2
+                    portrait_rect = pygame.Rect(
+                        panel_x + padding,
+                        name_rect.bottom + padding,
+                        portrait_size, portrait_size
+                    )
+                    pygame.draw.rect(surface, (40, 40, 40), portrait_rect)
+                    if u.sprite:
+                        sprite_scaled = pygame.transform.scale(u.sprite,
+                                                               (portrait_size, portrait_size))
+                        surface.blit(sprite_scaled, portrait_rect.topleft)
+
+                    # Stats
+                    stats = [
+                        ("Weapon Skill", f"{u.ws}+"),
+                        ("Ballistic Skill", f"{u.bs}+"),
+                        ("Strength", str(u.strength)),
+                        ("Toughness", str(u.toughness)),
+                        ("Wounds", f"{u.current_wounds}/{u.max_wounds}"),
+                        ("Attacks", str(u.attacks)),
+                        ("Leadership", str(u.leadership)),
+                        ("Save", f"{u.save}+"),
+                    ]
+                    lines = [f"{lab}: {val}" for lab, val in stats]
+
+                    start_y = portrait_rect.bottom + padding
+                    leftover = SCREEN_HEIGHT - start_y - padding
+                    spacing = leftover // (len(lines) + 1)
+                    y = start_y + spacing
+                    for line in lines:
+                        lbl = font_stat.render(line, True, (200, 200, 200))
+                        surface.blit(lbl, (panel_x + padding, y))
+                        y += spacing
+
                 else:
-                    pygame.draw.circle(surface, oc, (px, py), TILE_SIZE // 3 + 4, 3)
-
-                    # ── Stats Panel ─────────────────────────────────────────────
-                    panel_x = SCREEN_WIDTH - STAT_PANEL_WIDTH
-                    padding = 10
-
-                    # panel background
-                    pygame.draw.rect(surface, (20, 20, 20),
-                                     (panel_x, 0, STAT_PANEL_WIDTH, SCREEN_HEIGHT))
-                    pygame.draw.line(surface, (100, 100, 100),
-                                     (panel_x, 0), (panel_x, SCREEN_HEIGHT), 2)
-
-                    # determine which unit to show: hover > selected
-                    hover_unit = None
-                    if self.hover_tile:
-                        hover_unit = next((u for u in self.units
-                                           if u.position == self.hover_tile), None)
-                    selected_unit = next((u for u in self.units if u.selected), None)
-                    u = hover_unit or selected_unit
-
-                    font_name = pygame.font.Font(None, 32)
-                    font_stat = pygame.font.Font(None, 24)
-
-                    if u:
-                        # 1) Unit name centered
-                        name_lbl = font_name.render(u.name, True, (255, 255, 255))
-                        name_rect = name_lbl.get_rect(
-                            center=(panel_x + STAT_PANEL_WIDTH // 2, padding + name_lbl.get_height() // 2)
-                        )
-                        surface.blit(name_lbl, name_rect)
-
-                        # 2) Portrait below name
-                        portrait_size = STAT_PANEL_WIDTH - padding * 2
-                        portrait_rect = pygame.Rect(
-                            panel_x + padding,
-                            name_rect.bottom + padding,
-                            portrait_size,
-                            portrait_size
-                        )
-                        pygame.draw.rect(surface, (40, 40, 40), portrait_rect)  # frame
-                        if u.sprite:
-                            sprite_scaled = pygame.transform.scale(u.sprite,
-                                                                   (portrait_size, portrait_size))
-                            surface.blit(sprite_scaled, portrait_rect.topleft)
-
-                        # 3) Full stat names, dynamically spaced
-                        stats = [
-                            ("Weapon Skill", f"{u.ws}+"),
-                            ("Ballistic Skill", f"{u.bs}+"),
-                            ("Strength", str(u.strength)),
-                            ("Toughness", str(u.toughness)),
-                            ("Wounds", f"{u.current_wounds}/{u.max_wounds}"),
-                            ("Attacks", str(u.attacks)),
-                            ("Leadership", str(u.leadership)),
-                            ("Save", f"{u.save}+"),
-                        ]
-                        lines = [f"{label}: {value}" for label, value in stats]
-
-                        start_y = portrait_rect.bottom + padding
-                        leftover = SCREEN_HEIGHT - start_y - padding
-                        spacing = leftover // (len(lines) + 1)
-                        y = start_y + spacing
-
-                        for line in lines:
-                            lbl = font_stat.render(line, True, (200, 200, 200))
-                            surface.blit(lbl, (panel_x + padding, y))
-                            y += spacing
-
-                    else:
-                        # no hovered/selected unit
-                        msg = "No unit selected"
-                        lbl = font_name.render(msg, True, (200, 200, 200))
-                        surface.blit(lbl, (panel_x + padding, SCREEN_HEIGHT // 2))
+                    msg = "No unit selected"
+                    lbl = font_name.render(msg, True, (200, 200, 200))
+                    surface.blit(lbl, (panel_x + padding, SCREEN_HEIGHT // 2))
