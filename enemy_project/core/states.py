@@ -3,7 +3,8 @@
 import pygame
 from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT, STAT_PANEL_WIDTH
 from .unit import Unit
-from .combat import to_hit_roll, wound_roll, saving_throw  # if you need them
+from core.ai import enemy_turn
+from ui.battle_ui import BattleUI
 
 
 class State:
@@ -219,10 +220,12 @@ class BattleState(State):
                         selected.has_moved = True
 
     def update(self, dt):
+        # run enemy AI once when it's enemy phase
         if self.phase == "enemy" and not self.enemy_processed:
-            self._run_enemy_ai()
+            enemy_turn(self.units)
             self.enemy_processed = True
-            # reset flags for next player phase
+
+            # reset player flags
             for u in self.units:
                 u.has_moved = False
                 u.has_attacked = False
@@ -270,13 +273,15 @@ class BattleState(State):
                     player_units.remove(target)
 
     def draw(self, surface):
-        # 1) Clear background
+        # 1) clear + turn indicator
         surface.fill((30, 30, 30))
-
-        # 2) Phase label
         font_hdr = pygame.font.Font(None, 36)
         text = "Player Turn" if self.phase == "player" else "Enemy Turn"
         surface.blit(font_hdr.render(text, True, (255, 255, 255)), (10, 10))
+
+        # 2) battlefield UI
+        BattleUI.draw_grid(surface, GRID_WIDTH, GRID_HEIGHT, TILE_SIZE)
+        BattleUI.draw_stats_panel(surface, self)
 
         # 3) Draw grid
         for y in range(GRID_HEIGHT):
