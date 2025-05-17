@@ -6,7 +6,6 @@ from .unit import Unit
 from .ai import enemy_turn
 from enemy_project.ui.battle_ui import BattleUI
 from .ui import Button
-from .settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
 
 class State:
@@ -309,7 +308,7 @@ class BattleState(State):
                         selected.has_moved = True
 
     def update(self, dt):
-        # —— camera panning based on current mouse pos ——
+        # —— camera panning based on real mouse pos ——
         mx, my = pygame.mouse.get_pos()
 
         # pan left/right
@@ -324,11 +323,21 @@ class BattleState(State):
         elif my > SCREEN_HEIGHT - PAN_MARGIN:
             self.camera_y += PAN_SPEED * dt
 
-        # —— clamp camera so it never leaves the full map bounds ——
-        max_x = MAP_TILES_X * TILE_SIZE - SCREEN_WIDTH  # full map width minus viewport :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
-        max_y = MAP_TILES_Y * TILE_SIZE - SCREEN_HEIGHT  # full map height minus viewport :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
-        self.camera_x = max(0, min(self.camera_x, max_x))
-        self.camera_y = max(0, min(self.camera_y, max_y))
+        # —— clamp camera within the true map bounds ——
+        # ensure the “max” clamp value is never negative
+        max_x = max((MAP_TILES_X * TILE_SIZE) - SCREEN_WIDTH, 0)
+        max_y = max((MAP_TILES_Y * TILE_SIZE) - SCREEN_HEIGHT, 0)
+
+        # explicit, bullet-proof clamping
+        if self.camera_x < 0:
+            self.camera_x = 0
+        elif self.camera_x > max_x:
+            self.camera_x = max_x
+
+        if self.camera_y < 0:
+            self.camera_y = 0
+        elif self.camera_y > max_y:
+            self.camera_y = max_y
 
         # —— enemy AI —— (unchanged)
         if self.phase == "enemy" and not self.enemy_processed:
