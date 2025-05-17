@@ -84,8 +84,15 @@ class PvESetup(State):
                     f = self.fields[self.selected_field]
                     self.selected_option[f] = (self.selected_option[f] + 1) % len(self.options[f])
                 elif e.key == pygame.K_RETURN:
+                    # Prepare setup config
+                    cfg = {
+                        "mission": self.options["Mission"][self.selected_option["Mission"]],
+                        "player_army": self.options["Your Army"][self.selected_option["Your Army"]],
+                        "enemy_faction": self.options["Enemy Faction"][self.selected_option["Enemy Faction"]],
+                        "difficulty": self.options["Difficulty"][self.selected_option["Difficulty"]],
+                    }
                     from .states import BattleState
-                    self.game.state = BattleState(self.game)
+                    self.game.state = BattleState(self.game, cfg)
                 elif e.key == pygame.K_ESCAPE:
                     from .states import MainMenu
                     self.game.state = MainMenu(self.game)
@@ -106,26 +113,61 @@ class PvESetup(State):
 
 
 class BattleState(State):
-    def __init__(self, game):
+    """Battlefield: config-driven setup."""
+
+    def __init__(self, game, config):
         super().__init__(game)
+        self.config = config
         self.phase = "player"
         self.enemy_processed = True
-        self.units = [
-            Unit(
+        self.hover_tile = None
+        self.units = []
+
+        # Spawn player army
+        if config["player_army"] == "Space Marines":
+            self.units.append(Unit(
                 name="Tactical Marine", ws=3, bs=3, strength=4, toughness=4,
                 wounds=2, attacks=1, movement=5, leadership=7, save=3,
                 position=(1, 1), attack_range=1, team="player",
-                sprite_file="tactical_marine.png",
-                abilities=["And They Shall Know No Fear"]
-            ),
-            Unit(
-                name="Enemy Ork", ws=2, bs=0, strength=3, toughness=4,
-                wounds=1, attacks=2, movement=6, leadership=6, save=6,
+                sprite_file="tactical_marine.png"
+            ))
+        elif config["player_army"] == "Tyranids":
+            self.units.append(Unit(
+                name="Hormagaunt", ws=3, bs=0, strength=3, toughness=3,
+                wounds=1, attacks=2, movement=6, leadership=5, save=6,
+                position=(1, 1), attack_range=1, team="player",
+                sprite_file="tyranid.png"
+            ))
+        elif config["player_army"] == "Orks":
+            self.units.append(Unit(
+                name="Ork Boy", ws=3, bs=5, strength=4, toughness=4,
+                wounds=1, attacks=2, movement=5, leadership=6, save=6,
+                position=(1, 1), attack_range=1, team="player",
+                sprite_file="ork.png"
+            ))
+
+        # Spawn enemy faction
+        if config["enemy_faction"] == "Orks":
+            self.units.append(Unit(
+                name="Enemy Ork", ws=3, bs=5, strength=4, toughness=4,
+                wounds=1, attacks=2, movement=5, leadership=6, save=6,
                 position=(5, 2), attack_range=1, team="enemy",
                 sprite_file="ork.png"
-            ),
-        ]
-        self.hover_tile = None
+            ))
+        elif config["enemy_faction"] == "Tyranids":
+            self.units.append(Unit(
+                name="Enemy Hormagaunt", ws=3, bs=0, strength=3, toughness=3,
+                wounds=1, attacks=2, movement=6, leadership=5, save=6,
+                position=(5, 2), attack_range=1, team="enemy",
+                sprite_file="tyranid.png"
+            ))
+        elif config["enemy_faction"] == "Chaos":
+            self.units.append(Unit(
+                name="Chaos Cultist", ws=4, bs=4, strength=3, toughness=3,
+                wounds=1, attacks=1, movement=6, leadership=6, save=6,
+                position=(5, 2), attack_range=1, team="enemy",
+                sprite_file="cultist.png"
+            ))
 
     def handle_events(self, events):
         for e in events:
