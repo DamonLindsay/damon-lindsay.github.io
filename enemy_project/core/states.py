@@ -258,46 +258,51 @@ class BattleState(State):
             if e.type == pygame.QUIT:
                 self.game.running = False
 
-            elif e.type == pygame.MOUSEMOTION:
-                self.mouse_pos = e.pos
-
             elif e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_ESCAPE:
                     self.game.state = MainMenu(self.game)
                 elif e.key == pygame.K_e and self.phase == "player":
-                    # end player turn
                     self.phase = "enemy"
                     self.enemy_processed = False
 
             elif e.type == pygame.MOUSEMOTION:
-                mx, my = e.pos
-                gx, gy = mx // TILE_SIZE, my // TILE_SIZE
-                self.hover_tile = (gx, gy) if 0 <= gx < GRID_WIDTH and 0 <= gy < GRID_HEIGHT else None
+                # Always track mouse for camera panning…
+                self.mouse_pos = e.pos
 
-            # only during player phase:
+                # …and compute hover_tile in world coords
+                wx = e.pos[0] + self.camera_x
+                wy = e.pos[1] + self.camera_y
+                gx, gy = wx // TILE_SIZE, wy // TILE_SIZE
+                if 0 <= gx < GRID_WIDTH and 0 <= gy < GRID_HEIGHT:
+                    self.hover_tile = (gx, gy)
+                else:
+                    self.hover_tile = None
+
+            # Only allow clicks during player phase
             elif self.phase == "player" and e.type == pygame.MOUSEBUTTONDOWN and e.button == 1:
                 mx, my = e.pos
-                gx, gy = mx // TILE_SIZE, my // TILE_SIZE
+                # convert to world coords too
+                gx = (mx + self.camera_x) // TILE_SIZE
+                gy = (my + self.camera_y) // TILE_SIZE
 
                 clicked = next((u for u in self.units if u.position == (gx, gy)), None)
                 selected = next((u for u in self.units if u.selected), None)
 
-                # 1) select your own
                 if clicked and clicked.team == "player":
-                    for u in self.units:
-                        u.selected = False
+                    # select your own
+                    for u in self.units: u.selected = False
                     clicked.selected = True
 
-                # 2) attack if in range and not yet attacked
                 elif selected and clicked and clicked.team != "player":
+                    # attack in range
                     dist = abs(gx - selected.position[0]) + abs(gy - selected.position[1])
                     if dist <= selected.attack_range and not selected.has_attacked:
                         selected.attack(clicked)
                         if not clicked.is_alive():
                             self.units.remove(clicked)
 
-                # 3) move if in range and not yet moved
                 elif selected and not clicked:
+                    # move in range
                     dist = abs(gx - selected.position[0]) + abs(gy - selected.position[1])
                     occupied = any(u.position == (gx, gy) for u in self.units)
                     if dist <= selected.movement and not occupied and not selected.has_moved:
@@ -305,7 +310,7 @@ class BattleState(State):
                         selected.has_moved = True
 
     def update(self, dt):
-        # *** camera panning ***
+        # —— camera panning ——
         mx, my = self.mouse_pos
         if mx < PAN_MARGIN:
             self.camera_x -= PAN_SPEED * dt
@@ -316,16 +321,17 @@ class BattleState(State):
         elif my > SCREEN_HEIGHT - PAN_MARGIN:
             self.camera_y += PAN_SPEED * dt
 
-        # clamp camera to map bounds
+        # clamp camera to map size
         max_x = GRID_WIDTH * TILE_SIZE - SCREEN_WIDTH
         max_y = GRID_HEIGHT * TILE_SIZE - SCREEN_HEIGHT
         self.camera_x = max(0, min(self.camera_x, max_x))
         self.camera_y = max(0, min(self.camera_y, max_y))
 
-        # *** existing enemy AI logic ***
+        # —— enemy AI ——
         if self.phase == "enemy" and not self.enemy_processed:
             enemy_turn(self.units)
             self.enemy_processed = True
+            # reset for next player turn
             for u in self.units:
                 u.has_moved = u.has_attacked = False
             self.phase = "player"
@@ -372,19 +378,16 @@ class BattleState(State):
                     player_units.remove(target)
 
     def draw(self, surface):
-        # clear & turn label
+        # 1) clear & turn label
         surface.fill((30, 30, 30))
-        font_hdr = pygame.font.Font(None, 36)
-        lbl = font_hdr.render(
-            "Player Turn" if self.phase == "player" else "Enemy Turn",
-            True, (255, 255, 255)
-        )
-        surface.blit(lbl, (10, 10))
+        hdr = pygame.font.Font(None, 36)
+        txt = "Player Turn" if self.phase == "player" else "Enemy Turn"
+        surface.blit(hdr.render(txt, True, (255, 255, 255)), (10, 10))
 
-        # grid with camera
+        # 2) grid with camera
         BattleUI.draw_grid(surface, self.camera_x, self.camera_y)
 
-        # 4) Movement‐range highlight (green)
+        # 3) movement highlight (green)
         sel = [u for u in self.units if u.selected]
         if sel:
             u = sel[0]
@@ -394,9 +397,11 @@ class BattleState(State):
             for x in range(GRID_WIDTH):
                 for y in range(GRID_HEIGHT):
                     if abs(x - ux) + abs(y - uy) <= u.movement:
-                        surface.blit(overlay, (x * TILE_SIZE, y * TILE_SIZE))
+                        surface.blit(overlay,
+                                     (x * TILE_SIZE - self.camera_x,
+                                      y * TILE_SIZE - self.camera_y))
 
-        # 5) Attack‐range highlight (red)
+        # 4) attack highlight (red)
         if sel:
             u = sel[0]
             overlay = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
@@ -405,9 +410,11 @@ class BattleState(State):
             for x in range(GRID_WIDTH):
                 for y in range(GRID_HEIGHT):
                     if abs(x - ux) + abs(y - uy) <= u.attack_range:
-                        surface.blit(overlay, (x * TILE_SIZE, y * TILE_SIZE))
+                        surface.blit(overlay,
+                                     (x * TILE_SIZE - self.camera_x,
+                                      y * TILE_SIZE - self.camera_y))
 
-        # 6) Hover‐tile highlight (white border)
+        # 5) hover‐tile highlight (white)
         if self.hover_tile:
             hx, hy = self.hover_tile
             rect = pygame.Rect(
@@ -417,16 +424,17 @@ class BattleState(State):
             )
             pygame.draw.rect(surface, (255, 255, 255), rect, 2)
 
-        # 7) Draw units
+        # 6) draw units (with camera)
         for u in self.units:
             u.draw(surface, self.camera_x, self.camera_y)
 
-        # 8) Outline hovered unit (yellow)
+        # 7) outline hovered unit (yellow)
         if self.hover_tile:
             hovered = next((u for u in self.units if u.position == self.hover_tile), None)
             if hovered:
-                px = self.hover_tile[0] * TILE_SIZE + TILE_SIZE // 2
-                py = self.hover_tile[1] * TILE_SIZE + TILE_SIZE // 2
+                # screen‐space center
+                px = hovered.position[0] * TILE_SIZE - self.camera_x + TILE_SIZE // 2
+                py = hovered.position[1] * TILE_SIZE - self.camera_y + TILE_SIZE // 2
                 oc = (255, 255, 0)
                 if hovered.sprite:
                     rect = hovered.sprite.get_rect(center=(px, py))
@@ -434,5 +442,5 @@ class BattleState(State):
                 else:
                     pygame.draw.circle(surface, oc, (px, py), TILE_SIZE // 3 + 4, 3)
 
-        # 9) Stats panel
+        # 8) stats panel (fixed)
         BattleUI.draw_stats_panel(surface, self)
