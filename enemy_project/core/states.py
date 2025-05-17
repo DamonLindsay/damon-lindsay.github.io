@@ -1,7 +1,7 @@
 # core/states.py
 
 import pygame
-from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT, STAT_PANEL_WIDTH, PAN_SPEED, \
+from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, MAP_TILES_X, MAP_TILES_Y, STAT_PANEL_WIDTH, PAN_SPEED, \
     PAN_MARGIN
 from .unit import Unit
 from .ai import enemy_turn
@@ -273,7 +273,7 @@ class BattleState(State):
                 wx = e.pos[0] + self.camera_x
                 wy = e.pos[1] + self.camera_y
                 gx, gy = wx // TILE_SIZE, wy // TILE_SIZE
-                if 0 <= gx < GRID_WIDTH and 0 <= gy < GRID_HEIGHT:
+                if 0 <= gx < MAP_TILES_X and 0 <= gy < MAP_TILES_Y:
                     self.hover_tile = (gx, gy)
                 else:
                     self.hover_tile = None
@@ -326,8 +326,8 @@ class BattleState(State):
             self.camera_y += PAN_SPEED * dt
 
         # clamp camera so it never leaves the map bounds
-        max_x = GRID_WIDTH * TILE_SIZE - SCREEN_WIDTH
-        max_y = GRID_HEIGHT * TILE_SIZE - SCREEN_HEIGHT
+        max_x = MAP_TILES_X * TILE_SIZE - SCREEN_WIDTH
+        max_y = MAP_TILES_Y * TILE_SIZE - SCREEN_HEIGHT
         self.camera_x = max(0, min(self.camera_x, max_x))
         self.camera_y = max(0, min(self.camera_y, max_y))
 
@@ -368,8 +368,8 @@ class BattleState(State):
                     new_pos = (ex, ey + step_y)
 
                 # ensure tile free
-                if (0 <= new_pos[0] < GRID_WIDTH and
-                        0 <= new_pos[1] < GRID_HEIGHT and
+                if (0 <= new_pos[0] < MAP_TILES_X and
+                        0 <= new_pos[1] < MAP_TILES_Y and
                         not any(u.position == new_pos for u in self.units)):
                     enemy.position = new_pos
                     dist -= 1  # update distance
@@ -398,8 +398,8 @@ class BattleState(State):
             overlay = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
             overlay.fill((0, 255, 0, 80))
             ux, uy = u.position
-            for x in range(GRID_WIDTH):
-                for y in range(GRID_HEIGHT):
+            for x in range(MAP_TILES_X):
+                for y in range(MAP_TILES_Y):
                     if abs(x - ux) + abs(y - uy) <= u.movement:
                         surface.blit(overlay,
                                      (x * TILE_SIZE - self.camera_x,
@@ -411,8 +411,8 @@ class BattleState(State):
             overlay = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
             overlay.fill((255, 0, 0, 80))
             ux, uy = u.position
-            for x in range(GRID_WIDTH):
-                for y in range(GRID_HEIGHT):
+            for x in range(MAP_TILES_X):
+                for y in range(MAP_TILES_Y):
                     if abs(x - ux) + abs(y - uy) <= u.attack_range:
                         surface.blit(overlay,
                                      (x * TILE_SIZE - self.camera_x,
