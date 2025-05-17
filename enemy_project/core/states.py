@@ -1,8 +1,7 @@
 # core/states.py
 
 import pygame
-from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, MAP_TILES_X, MAP_TILES_Y, STAT_PANEL_WIDTH, PAN_SPEED, \
-    PAN_MARGIN
+from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, MAP_TILES_X, MAP_TILES_Y, PAN_SPEED, PAN_MARGIN
 from .unit import Unit
 from .ai import enemy_turn
 from enemy_project.ui.battle_ui import BattleUI
@@ -311,7 +310,7 @@ class BattleState(State):
 
     def update(self, dt):
         # —— camera panning based on current mouse pos ——
-        mx, my = pygame.mouse.get_pos()  # get real‐time mouse coords
+        mx, my = pygame.mouse.get_pos()
 
         # pan left/right
         if mx < PAN_MARGIN:
@@ -325,17 +324,16 @@ class BattleState(State):
         elif my > SCREEN_HEIGHT - PAN_MARGIN:
             self.camera_y += PAN_SPEED * dt
 
-        # clamp camera so it never leaves the map bounds
-        max_x = MAP_TILES_X * TILE_SIZE - SCREEN_WIDTH
-        max_y = MAP_TILES_Y * TILE_SIZE - SCREEN_HEIGHT
+        # —— clamp camera so it never leaves the full map bounds ——
+        max_x = MAP_TILES_X * TILE_SIZE - SCREEN_WIDTH  # full map width minus viewport :contentReference[oaicite:0]{index=0}:contentReference[oaicite:1]{index=1}
+        max_y = MAP_TILES_Y * TILE_SIZE - SCREEN_HEIGHT  # full map height minus viewport :contentReference[oaicite:2]{index=2}:contentReference[oaicite:3]{index=3}
         self.camera_x = max(0, min(self.camera_x, max_x))
         self.camera_y = max(0, min(self.camera_y, max_y))
 
-        # —— enemy AI ——
+        # —— enemy AI —— (unchanged)
         if self.phase == "enemy" and not self.enemy_processed:
             enemy_turn(self.units)
             self.enemy_processed = True
-            # reset per‐turn flags
             for u in self.units:
                 u.has_moved = u.has_attacked = False
             self.phase = "player"
