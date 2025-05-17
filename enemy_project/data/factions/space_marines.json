@@ -1,0 +1,64 @@
+{
+  "units": [
+    {
+      "name": "Intercessor",
+      "movement": 6,
+      "ws": 3,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 2,
+      "attacks": 2,
+      "leadership": 7,
+      "save": 3,
+      "abilities": [
+        "And They Shall Know No Fear"
+      ]
+    },
+    {
+      "name": "Aggressor",
+      "movement": 5,
+      "ws": 3,
+      "bs": 3,
+      "strength": 5,
+      "toughness": 5,
+      "wounds": 3,
+      "attacks": 2,
+      "leadership": 7,
+      "save": 3,
+      "abilities": [
+        "And They Shall Know No Fear"
+      ]
+    },
+    {
+      "name": "Sternguard Veteran",
+      "movement": 6,
+      "ws": 3,
+      "bs": 2,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 1,
+      "attacks": 2,
+      "leadership": 7,
+      "save": 3,
+      "abilities": [
+        "And They Shall Know No Fear"
+      ]
+    },
+    {
+      "name": "Redemptor Dreadnought",
+      "movement": 5,
+      "ws": 2,
+      "bs": 3,
+      "strength": 8,
+      "toughness": 8,
+      "wounds": 12,
+      "attacks": 3,
+      "leadership": 8,
+      "save": 2,
+      "abilities": [
+        "Deadly Demise"
+      ]
+    }
+  ]
+}
