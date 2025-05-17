@@ -310,18 +310,22 @@ class BattleState(State):
                         selected.has_moved = True
 
     def update(self, dt):
-        # —— camera panning ——
-        mx, my = self.mouse_pos
+        # —— camera panning based on current mouse pos ——
+        mx, my = pygame.mouse.get_pos()  # get real‐time mouse coords
+
+        # pan left/right
         if mx < PAN_MARGIN:
             self.camera_x -= PAN_SPEED * dt
         elif mx > SCREEN_WIDTH - PAN_MARGIN:
             self.camera_x += PAN_SPEED * dt
+
+        # pan up/down
         if my < PAN_MARGIN:
             self.camera_y -= PAN_SPEED * dt
         elif my > SCREEN_HEIGHT - PAN_MARGIN:
             self.camera_y += PAN_SPEED * dt
 
-        # clamp camera to map size
+        # clamp camera so it never leaves the map bounds
         max_x = GRID_WIDTH * TILE_SIZE - SCREEN_WIDTH
         max_y = GRID_HEIGHT * TILE_SIZE - SCREEN_HEIGHT
         self.camera_x = max(0, min(self.camera_x, max_x))
@@ -331,7 +335,7 @@ class BattleState(State):
         if self.phase == "enemy" and not self.enemy_processed:
             enemy_turn(self.units)
             self.enemy_processed = True
-            # reset for next player turn
+            # reset per‐turn flags
             for u in self.units:
                 u.has_moved = u.has_attacked = False
             self.phase = "player"
