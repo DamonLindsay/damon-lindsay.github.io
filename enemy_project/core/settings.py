@@ -30,8 +30,8 @@ VIEWPORT_TILES_X = SCREEN_WIDTH // TILE_SIZE  # e.g. 20
 VIEWPORT_TILES_Y = SCREEN_HEIGHT // TILE_SIZE  # e.g. 11
 
 # Now explicitly set your map dimensions — make these larger than viewport
-MAP_TILES_X = 60  # e.g. 60 tiles wide
-MAP_TILES_Y = 40  # e.g. 40 tiles tall
+MAP_TILES_X = 72  # e.g. 60 tiles wide
+MAP_TILES_Y = 48  # e.g. 40 tiles tall
 
 # ── UI PANEL ───────────────────────────────────────────────────────────────────
 
