@@ -1,7 +1,8 @@
 # ui/battle_ui.py
 
 import pygame
-from ..core.settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT, STAT_PANEL_WIDTH
+from enemy_project.core.settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT, \
+    STAT_PANEL_WIDTH
 
 
 class BattleUI:
@@ -69,7 +70,6 @@ class BattleUI:
                 portrait_size,
                 portrait_size
             )
-            # Frame behind portrait
             pygame.draw.rect(surface, (40, 40, 40), portrait_rect)
             if u.sprite:
                 sprite_scaled = pygame.transform.scale(
