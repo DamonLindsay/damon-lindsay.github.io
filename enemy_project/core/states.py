@@ -1,7 +1,8 @@
 # core/states.py
 
 import pygame
-from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT, STAT_PANEL_WIDTH
+from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT, STAT_PANEL_WIDTH, PAN_SPEED, \
+    PAN_MARGIN
 from .unit import Unit
 from .ai import enemy_turn
 from enemy_project.ui.battle_ui import BattleUI
@@ -203,6 +204,8 @@ class BattleState(State):
         self.enemy_processed = True
         self.hover_tile = None
         self.units = []
+        self.camera_x, self.camera_y = 0, 0
+        self.mouse_pos = (0, 0)
 
         # Spawn player army
         if config["player_army"] == "Space Marines":
@@ -255,9 +258,11 @@ class BattleState(State):
             if e.type == pygame.QUIT:
                 self.game.running = False
 
+            elif e.type == pygame.MOUSEMOTION:
+                self.mouse_pos = e.pos
+
             elif e.type == pygame.KEYDOWN:
                 if e.key == pygame.K_ESCAPE:
-                    from .states import MainMenu
                     self.game.state = MainMenu(self.game)
                 elif e.key == pygame.K_e and self.phase == "player":
                     # end player turn
@@ -300,15 +305,29 @@ class BattleState(State):
                         selected.has_moved = True
 
     def update(self, dt):
-        # run enemy AI once when it's enemy phase
+        # *** camera panning ***
+        mx, my = self.mouse_pos
+        if mx < PAN_MARGIN:
+            self.camera_x -= PAN_SPEED * dt
+        elif mx > SCREEN_WIDTH - PAN_MARGIN:
+            self.camera_x += PAN_SPEED * dt
+        if my < PAN_MARGIN:
+            self.camera_y -= PAN_SPEED * dt
+        elif my > SCREEN_HEIGHT - PAN_MARGIN:
+            self.camera_y += PAN_SPEED * dt
+
+        # clamp camera to map bounds
+        max_x = GRID_WIDTH * TILE_SIZE - SCREEN_WIDTH
+        max_y = GRID_HEIGHT * TILE_SIZE - SCREEN_HEIGHT
+        self.camera_x = max(0, min(self.camera_x, max_x))
+        self.camera_y = max(0, min(self.camera_y, max_y))
+
+        # *** existing enemy AI logic ***
         if self.phase == "enemy" and not self.enemy_processed:
             enemy_turn(self.units)
             self.enemy_processed = True
-
-            # reset player flags
             for u in self.units:
-                u.has_moved = False
-                u.has_attacked = False
+                u.has_moved = u.has_attacked = False
             self.phase = "player"
 
     def _run_enemy_ai(self):
@@ -353,16 +372,17 @@ class BattleState(State):
                     player_units.remove(target)
 
     def draw(self, surface):
-        # 1) Clear background
+        # clear & turn label
         surface.fill((30, 30, 30))
-
-        # 2) Turn indicator
         font_hdr = pygame.font.Font(None, 36)
-        text = "Player Turn" if self.phase == "player" else "Enemy Turn"
-        surface.blit(font_hdr.render(text, True, (255, 255, 255)), (10, 10))
+        lbl = font_hdr.render(
+            "Player Turn" if self.phase == "player" else "Enemy Turn",
+            True, (255, 255, 255)
+        )
+        surface.blit(lbl, (10, 10))
 
-        # 3) Grid
-        BattleUI.draw_grid(surface)
+        # grid with camera
+        BattleUI.draw_grid(surface, self.camera_x, self.camera_y)
 
         # 4) Movement‐range highlight (green)
         sel = [u for u in self.units if u.selected]
@@ -390,16 +410,16 @@ class BattleState(State):
         # 6) Hover‐tile highlight (white border)
         if self.hover_tile:
             hx, hy = self.hover_tile
-            pygame.draw.rect(
-                surface,
-                (255, 255, 255),
-                (hx * TILE_SIZE, hy * TILE_SIZE, TILE_SIZE, TILE_SIZE),
-                2
+            rect = pygame.Rect(
+                hx * TILE_SIZE - self.camera_x,
+                hy * TILE_SIZE - self.camera_y,
+                TILE_SIZE, TILE_SIZE
             )
+            pygame.draw.rect(surface, (255, 255, 255), rect, 2)
 
         # 7) Draw units
         for u in self.units:
-            u.draw(surface)
+            u.draw(surface, self.camera_x, self.camera_y)
 
         # 8) Outline hovered unit (yellow)
         if self.hover_tile:

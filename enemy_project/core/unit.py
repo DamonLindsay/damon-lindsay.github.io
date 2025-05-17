@@ -77,11 +77,14 @@ class Unit:
         else:
             self.sprite = None
 
-    def draw(self, surface):
-        """Draw sprite if available, else draw a colored circle."""
-        gx, gy = self.position
-        px = gx * TILE_SIZE + TILE_SIZE // 2
-        py = gy * TILE_SIZE + TILE_SIZE // 2
+    def draw(self, surface, camera_x=0, camera_y=0):
+        """
+        Draw sprite or circle at world position minus camera offset.
+        """
+        world_x = self.position[0] * TILE_SIZE
+        world_y = self.position[1] * TILE_SIZE
+        px = world_x - camera_x + TILE_SIZE // 2
+        py = world_y - camera_y + TILE_SIZE // 2
 
         if self.sprite:
             rect = self.sprite.get_rect(center=(px, py))

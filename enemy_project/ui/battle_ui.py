@@ -3,6 +3,7 @@
 import pygame
 from enemy_project.core.settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT, \
     STAT_PANEL_WIDTH
+from enemy_project.core.settings import TILE_SIZE, GRID_WIDTH, GRID_HEIGHT
 
 
 class BattleUI:
@@ -11,15 +12,15 @@ class BattleUI:
     """
 
     @staticmethod
-    def draw_grid(surface):
+    def draw_grid(surface, camera_x=0, camera_y=0):
         """
-        Draws the battlefield grid lines.
+        Draws the battlefield grid lines offset by the camera.
         """
         for y in range(GRID_HEIGHT):
             for x in range(GRID_WIDTH):
                 rect = pygame.Rect(
-                    x * TILE_SIZE,
-                    y * TILE_SIZE,
+                    x * TILE_SIZE - camera_x,
+                    y * TILE_SIZE - camera_y,
                     TILE_SIZE,
                     TILE_SIZE
                 )

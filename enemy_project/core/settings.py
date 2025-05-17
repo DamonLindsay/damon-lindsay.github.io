@@ -29,3 +29,7 @@ GRID_HEIGHT = SCREEN_HEIGHT // TILE_SIZE
 
 # Width of the right-hand stats panel
 STAT_PANEL_WIDTH = 300
+
+# Camera panning
+PAN_SPEED = 300  # pixels per second
+PAN_MARGIN = 50  # pixels from edge to start panning
