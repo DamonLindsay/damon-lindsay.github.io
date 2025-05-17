@@ -71,10 +71,12 @@ class MainMenu(State):
 
 
 class PvESetup(State):
-    """PvE setup: pick mission, army, enemy and difficulty."""
+    """PvE setup screen with clickable Buttons to select options."""
 
     def __init__(self, game):
         super().__init__(game)
+
+        # Fields and their option lists
         self.fields = ["Mission", "Your Army", "Enemy Faction", "Difficulty"]
         self.options = {
             "Mission": ["Purge", "Secure", "Annihilation"],
@@ -82,50 +84,99 @@ class PvESetup(State):
             "Enemy Faction": ["Tyranids", "Orks", "Chaos"],
             "Difficulty": ["Easy", "Medium", "Hard"],
         }
-        self.selected_field = 0
-        self.selected_option = {f: 0 for f in self.fields}
-        self.font = pygame.font.Font(None, 36)
+        # Track selected index per field
+        self.selected = {f: 0 for f in self.fields}
+
+        # Layout calculations
+        font = pygame.font.Font(None, 36)
+        x_center = SCREEN_WIDTH // 2
+        y_start = SCREEN_HEIGHT // 4
+        row_height = 80
+        arrow_size = (40, 40)
+        label_offset_x = - (arrow_size[0] + 20)
+
+        # Buttons list
+        self.buttons = []
+
+        # Create left/right buttons for each field
+        for i, field in enumerate(self.fields):
+            y = y_start + i * row_height
+
+            # Left arrow
+            self.buttons.append(Button(
+                rect=(x_center - 100 + label_offset_x, y, *arrow_size),
+                text="<",
+                callback=lambda f=field: self._change(f, -1),
+                font=font
+            ))
+
+            # Right arrow
+            self.buttons.append(Button(
+                rect=(x_center + 60, y, *arrow_size),
+                text=">",
+                callback=lambda f=field: self._change(f, +1),
+                font=font
+            ))
+
+        # Confirm button
+        self.buttons.append(Button(
+            rect=(x_center - 100, y_start + len(self.fields) * row_height, 200, 60),
+            text="Confirm",
+            callback=self._on_confirm,
+            font=font
+        ))
+
+        # Back button
+        small_font = pygame.font.Font(None, 24)
+        self.buttons.append(Button(
+            rect=(10, 10, 100, 40),
+            text="Back",
+            callback=lambda: setattr(self.game, "state", MainMenu(self.game)),
+            font=small_font
+        ))
+
+    def _change(self, field, delta):
+        opts = self.options[field]
+        idx = (self.selected[field] + delta) % len(opts)
+        self.selected[field] = idx
+
+    def _on_confirm(self):
+        cfg = {
+            "mission": self.options["Mission"][self.selected["Mission"]],
+            "player_army": self.options["Your Army"][self.selected["Your Army"]],
+            "enemy_faction": self.options["Enemy Faction"][self.selected["Enemy Faction"]],
+            "difficulty": self.options["Difficulty"][self.selected["Difficulty"]],
+        }
+        self.game.state = BattleState(self.game, cfg)
 
     def handle_events(self, events):
         for e in events:
-            if e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_UP:
-                    self.selected_field = (self.selected_field - 1) % len(self.fields)
-                elif e.key == pygame.K_DOWN:
-                    self.selected_field = (self.selected_field + 1) % len(self.fields)
-                elif e.key == pygame.K_LEFT:
-                    f = self.fields[self.selected_field]
-                    self.selected_option[f] = (self.selected_option[f] - 1) % len(self.options[f])
-                elif e.key == pygame.K_RIGHT:
-                    f = self.fields[self.selected_field]
-                    self.selected_option[f] = (self.selected_option[f] + 1) % len(self.options[f])
-                elif e.key == pygame.K_RETURN:
-                    # Prepare setup config
-                    cfg = {
-                        "mission": self.options["Mission"][self.selected_option["Mission"]],
-                        "player_army": self.options["Your Army"][self.selected_option["Your Army"]],
-                        "enemy_faction": self.options["Enemy Faction"][self.selected_option["Enemy Faction"]],
-                        "difficulty": self.options["Difficulty"][self.selected_option["Difficulty"]],
-                    }
-                    from .states import BattleState
-                    self.game.state = BattleState(self.game, cfg)
-                elif e.key == pygame.K_ESCAPE:
-                    from .states import MainMenu
-                    self.game.state = MainMenu(self.game)
+            if e.type == pygame.QUIT:
+                self.game.running = False
+            for btn in self.buttons:
+                btn.handle_event(e)
+
+    def update(self, dt):
+        pass
 
     def draw(self, surface):
         surface.fill((0, 0, 0))
-        y0 = SCREEN_HEIGHT // 2 - len(self.fields) * 30
-        for i, f in enumerate(self.fields):
-            sel = (i == self.selected_field)
-            color = (255, 255, 255) if sel else (150, 150, 150)
-            txt = f"{f}: {self.options[f][self.selected_option[f]]}"
-            lbl = self.font.render(txt, True, color)
-            rect = lbl.get_rect(center=(SCREEN_WIDTH // 2, y0 + i * 60))
+        font = pygame.font.Font(None, 36)
+        x_center = SCREEN_WIDTH // 2
+        y_start = SCREEN_HEIGHT // 4
+        row_height = 80
+
+        # Draw each field label and its current selection
+        for i, field in enumerate(self.fields):
+            y = y_start + i * row_height
+            text = f"{field}: {self.options[field][self.selected[field]]}"
+            lbl = font.render(text, True, (255, 255, 255))
+            rect = lbl.get_rect(center=(x_center, y + 20))
             surface.blit(lbl, rect)
-        hint = "↑↓ select field, ←→ change, Enter to battle, Esc to menu"
-        hlp = self.font.render(hint, True, (100, 100, 100))
-        surface.blit(hlp, hlp.get_rect(center=(SCREEN_WIDTH // 2, SCREEN_HEIGHT - 30)))
+
+        # Draw all buttons on top
+        for btn in self.buttons:
+            btn.draw(surface)
 
 
 class BattleState(State):
