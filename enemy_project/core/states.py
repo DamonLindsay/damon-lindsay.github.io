@@ -5,6 +5,8 @@ from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_H
 from .unit import Unit
 from .ai import enemy_turn
 from enemy_project.ui.battle_ui import BattleUI
+from .ui import Button
+from .settings import SCREEN_WIDTH, SCREEN_HEIGHT
 
 
 class State:
@@ -21,38 +23,51 @@ class State:
 
 
 class MainMenu(State):
-    """Main menu with two options: Start PvE, Quit."""
+    """Main menu using clickable Button components."""
 
     def __init__(self, game):
         super().__init__(game)
-        self.options = ["Start PvE", "Quit"]
-        self.selected = 0
-        self.font = pygame.font.Font(None, 48)
+
+        # Prepare a font and button dimensions
+        font = pygame.font.Font(None, 48)
+        btn_w, btn_h = 250, 60
+        cx = SCREEN_WIDTH // 2
+        start_y = SCREEN_HEIGHT // 2 - btn_h - 10
+
+        # Create buttons
+        self.buttons = [
+            Button(
+                rect=(cx - btn_w // 2, start_y, btn_w, btn_h),
+                text="Start PvE",
+                callback=self._on_start,
+                font=font
+            ),
+            Button(
+                rect=(cx - btn_w // 2, start_y + btn_h + 20, btn_w, btn_h),
+                text="Quit",
+                callback=lambda: setattr(self.game, "running", False),
+                font=font
+            )
+        ]
+
+    def _on_start(self):
+        from .states import PvESetup
+        self.game.state = PvESetup(self.game)
 
     def handle_events(self, events):
         for e in events:
-            if e.type == pygame.KEYDOWN:
-                if e.key == pygame.K_UP:
-                    self.selected = (self.selected - 1) % len(self.options)
-                elif e.key == pygame.K_DOWN:
-                    self.selected = (self.selected + 1) % len(self.options)
-                elif e.key == pygame.K_RETURN:
-                    if self.options[self.selected] == "Start PvE":
-                        from .states import PvESetup
-                        self.game.state = PvESetup(self.game)
-                    else:
-                        self.game.running = False
+            if e.type == pygame.QUIT:
+                self.game.running = False
+            for btn in self.buttons:
+                btn.handle_event(e)
+
+    def update(self, dt):
+        pass
 
     def draw(self, surface):
         surface.fill((0, 0, 0))
-        for idx, text in enumerate(self.options):
-            color = (255, 255, 255) if idx == self.selected else (100, 100, 100)
-            label = self.font.render(text, True, color)
-            rect = label.get_rect(center=(
-                SCREEN_WIDTH // 2,
-                SCREEN_HEIGHT // 2 + idx * 60
-            ))
-            surface.blit(label, rect)
+        for btn in self.buttons:
+            btn.draw(surface)
 
 
 class PvESetup(State):
