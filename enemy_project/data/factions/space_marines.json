@@ -1,36 +1,6 @@
 {
   "units": [
     {
-      "name": "Intercessor",
-      "movement": 6,
-      "ws": 3,
-      "bs": 3,
-      "strength": 4,
-      "toughness": 4,
-      "wounds": 2,
-      "attacks": 2,
-      "leadership": 7,
-      "save": 3,
-      "abilities": [
-        "And They Shall Know No Fear"
-      ]
-    },
-    {
-      "name": "Aggressor",
-      "movement": 5,
-      "ws": 3,
-      "bs": 3,
-      "strength": 5,
-      "toughness": 5,
-      "wounds": 3,
-      "attacks": 2,
-      "leadership": 7,
-      "save": 3,
-      "abilities": [
-        "And They Shall Know No Fear"
-      ]
-    },
-    {
       "name": "Sternguard Veteran",
       "movement": 6,
       "ws": 3,
@@ -76,6 +46,377 @@
         "Leader",
         "Oath of Moment",
         "Finest Hour"
+      ]
+    },
+    {
+      "name": "Lieutenant",
+      "movement": 6,
+      "ws": 2,
+      "bs": 2,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 4,
+      "attacks": 4,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Invulnerable Save 4+",
+        "Leader",
+        "Oath of Moment",
+        "Tactical Precision",
+        "Target Priority"
+      ]
+    },
+    {
+      "name": "Librarian",
+      "movement": 6,
+      "ws": 3,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 4,
+      "attacks": 4,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Leader",
+        "Oath of Moment",
+        "Psychic Hood",
+        "Mental Fortress"
+      ]
+    },
+    {
+      "name": "Chaplain",
+      "movement": 6,
+      "ws": 2,
+      "bs": 3,
+      "strength": 5,
+      "toughness": 4,
+      "wounds": 4,
+      "attacks": 5,
+      "leadership": 5,
+      "save": 3,
+      "abilities": [
+        "Invulnerable Save 4+",
+        "Leader",
+        "Oath of Moment",
+        "Litany of Hate",
+        "Spiritual Leader"
+      ]
+    },
+    {
+      "name": "Techmarine",
+      "movement": 6,
+      "ws": 3,
+      "bs": 2,
+      "strength": 5,
+      "toughness": 4,
+      "wounds": 4,
+      "attacks": 4,
+      "leadership": 6,
+      "save": 2,
+      "abilities": [
+        "Leader",
+        "Oath of Moment",
+        "Techmarine",
+        "Blessing of the Omnissiah",
+        "Vengeance of the Omnissiah"
+      ]
+    },
+    {
+      "name": "Apothecary",
+      "movement": 6,
+      "ws": 3,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 4,
+      "attacks": 4,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Leader",
+        "Oath of Moment",
+        "Narthecium",
+        "Gene-seed Recovery"
+      ]
+    },
+    {
+      "name": "Ancient",
+      "movement": 6,
+      "ws": 2,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 4,
+      "attacks": 5,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Leader",
+        "Oath of Moment",
+        "Astartes Banner",
+        "Unbreakable Duty"
+      ]
+    },
+    {
+      "name": "Judiciar",
+      "movement": 6,
+      "ws": 2,
+      "bs": 3,
+      "strength": 5,
+      "toughness": 4,
+      "wounds": 4,
+      "attacks": 5,
+      "leadership": 5,
+      "save": 3,
+      "abilities": [
+        "Invulnerable Save 4+ (melee only)",
+        "Leader",
+        "Oath of Moment",
+        "Tempormortis",
+        "Silent Fury"
+      ]
+    },
+    {
+      "name": "Company Heroes",
+      "movement": 6,
+      "ws": 3,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 4,
+      "attacks": 5,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Oath of Moment",
+        "Astartes Banner",
+        "Command Squad"
+      ]
+    },
+    {
+      "name": "Intercessor Squad",
+      "movement": 6,
+      "ws": 3,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 2,
+      "attacks": 3,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Oath of Moment",
+        "Objective Secured"
+      ]
+    },
+    {
+      "name": "Incursor Squad",
+      "movement": 6,
+      "ws": 3,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 2,
+      "attacks": 3,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Scouts 6\"",
+        "Oath of Moment",
+        "Multi-spectrum Array",
+        "Haywire Mine"
+      ]
+    },
+    {
+      "name": "Infiltrator Squad",
+      "movement": 6,
+      "ws": 3,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 2,
+      "attacks": 3,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Infiltrators",
+        "Oath of Moment",
+        "Omni-scramblers",
+        "Helix Gauntlet",
+        "Infiltrator Comms Array"
+      ]
+    },
+    {
+      "name": "Tactical Squad",
+      "movement": 6,
+      "ws": 3,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 2,
+      "attacks": 3,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Oath of Moment",
+        "Combat Squads"
+      ]
+    },
+    {
+      "name": "Scout Squad",
+      "movement": 6,
+      "ws": 3,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 2,
+      "attacks": 3,
+      "leadership": 6,
+      "save": 4,
+      "abilities": [
+        "Infiltrators",
+        "Scouts 6\"",
+        "Oath of Moment",
+        "Guerrilla Tactics"
+      ]
+    },
+    {
+      "name": "Infernus Squad",
+      "movement": 6,
+      "ws": 3,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 2,
+      "attacks": 3,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Oath of Moment",
+        "Incendiary Terror"
+      ]
+    },
+    {
+      "name": "Aggressor Squad",
+      "movement": 5,
+      "ws": 3,
+      "bs": 3,
+      "strength": 8,
+      "toughness": 6,
+      "wounds": 3,
+      "attacks": 3,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Oath of Moment",
+        "Close-quarters Firepower"
+      ]
+    },
+    {
+      "name": "Reiver Squad",
+      "movement": 6,
+      "ws": 3,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 2,
+      "attacks": 4,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Scouts 6\"",
+        "Oath of Moment",
+        "Fearsome Assault",
+        "Terror Troops",
+        "Grapnel Launcher",
+        "Reiver Grav-chute"
+      ]
+    },
+    {
+      "name": "Terminator Squad",
+      "movement": 5,
+      "ws": 3,
+      "bs": 3,
+      "strength": 5,
+      "toughness": 5,
+      "wounds": 3,
+      "attacks": 4,
+      "leadership": 6,
+      "save": 2,
+      "abilities": [
+        "Invulnerable Save 4+",
+        "Deep Strike",
+        "Oath of Moment",
+        "Teleport Homer",
+        "Fury of the First"
+      ]
+    },
+    {
+      "name": "Dreadnought",
+      "movement": 6,
+      "ws": 3,
+      "bs": 3,
+      "strength": 6,
+      "toughness": 9,
+      "wounds": 8,
+      "attacks": 5,
+      "leadership": 6,
+      "save": 2,
+      "abilities": [
+        "Deadly Demise 1",
+        "Oath of Moment",
+        "Wisdom of the Ancients"
+      ]
+    },
+    {
+      "name": "Suppressor Squad",
+      "movement": 12,
+      "ws": 3,
+      "bs": 4,
+      "strength": 4,
+      "toughness": 4,
+      "wounds": 2,
+      "attacks": 3,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Deep Strike",
+        "Oath of Moment",
+        "Suppression Fire"
+      ]
+    },
+    {
+      "name": "Outrider Squad",
+      "movement": 12,
+      "ws": 3,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 5,
+      "wounds": 4,
+      "attacks": 4,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Oath of Moment",
+        "Turbo-boost"
+      ]
+    },
+    {
+      "name": "Invader ATV",
+      "movement": 12,
+      "ws": 3,
+      "bs": 3,
+      "strength": 4,
+      "toughness": 5,
+      "wounds": 8,
+      "attacks": 5,
+      "leadership": 6,
+      "save": 3,
+      "abilities": [
+        "Oath of Moment",
+        "Outrider Escort"
       ]
     }
   ]
