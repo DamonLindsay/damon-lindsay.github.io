@@ -3,8 +3,8 @@
 import pygame
 from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT, STAT_PANEL_WIDTH
 from .unit import Unit
-from core.ai import enemy_turn
-from ui.battle_ui import BattleUI
+from .ai import enemy_turn
+from ..ui.battle_ui import BattleUI
 
 
 class State:
