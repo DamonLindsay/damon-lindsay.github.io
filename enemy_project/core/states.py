@@ -164,18 +164,32 @@ class PvESetup(State):
         font = pygame.font.Font(None, 36)
         x_center = SCREEN_WIDTH // 2
         y_start = SCREEN_HEIGHT // 4
-        row_height = 80
+        row_h = 80
+        arrow_gap = 200  # horizontal distance from center to each arrow
 
-        # Draw each field label and its current selection
+        # Draw each field row: left arrow, label, right arrow
         for i, field in enumerate(self.fields):
-            y = y_start + i * row_height
-            text = f"{field}: {self.options[field][self.selected[field]]}"
-            lbl = font.render(text, True, (255, 255, 255))
-            rect = lbl.get_rect(center=(x_center, y + 20))
-            surface.blit(lbl, rect)
+            y = y_start + i * row_h
 
-        # Draw all buttons on top
-        for btn in self.buttons:
+            # left/right arrow buttons (created in __init__)
+            left_btn = self.buttons[2 * i]
+            right_btn = self.buttons[2 * i + 1]
+
+            # reposition and draw arrows
+            left_btn.rect.center = (x_center - arrow_gap, y)
+            right_btn.rect.center = (x_center + arrow_gap, y)
+            left_btn.draw(surface)
+            right_btn.draw(surface)
+
+            # draw the label centered between them
+            choice = self.options[field][self.selected[field]]
+            txt = f"{field}: {choice}"
+            lbl = font.render(txt, True, (255, 255, 255))
+            lbl_rect = lbl.get_rect(center=(x_center, y))
+            surface.blit(lbl, lbl_rect)
+
+        # draw the Confirm and Back buttons (they follow in your buttons list)
+        for btn in self.buttons[2 * len(self.fields):]:
             btn.draw(surface)
 
 
