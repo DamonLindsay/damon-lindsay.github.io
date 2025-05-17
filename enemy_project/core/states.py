@@ -4,7 +4,7 @@ import pygame
 from .settings import SCREEN_WIDTH, SCREEN_HEIGHT, TILE_SIZE, GRID_WIDTH, GRID_HEIGHT, STAT_PANEL_WIDTH
 from .unit import Unit
 from .ai import enemy_turn
-from ui.battle_ui import BattleUI
+from enemy_project.ui.battle_ui import BattleUI
 
 
 class State:
@@ -272,11 +272,67 @@ class BattleState(State):
                     self.units.remove(target)
                     player_units.remove(target)
 
-    from ui.battle_ui import BattleUI
-
     def draw(self, surface):
+        # 1) Clear background
         surface.fill((30, 30, 30))
-        # turn indicator...
+
+        # 2) Turn indicator
+        font_hdr = pygame.font.Font(None, 36)
+        text = "Player Turn" if self.phase == "player" else "Enemy Turn"
+        surface.blit(font_hdr.render(text, True, (255, 255, 255)), (10, 10))
+
+        # 3) Grid
         BattleUI.draw_grid(surface)
-        # overlays and unit.draw() calls here...
+
+        # 4) Movement‐range highlight (green)
+        sel = [u for u in self.units if u.selected]
+        if sel:
+            u = sel[0]
+            overlay = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
+            overlay.fill((0, 255, 0, 80))
+            ux, uy = u.position
+            for x in range(GRID_WIDTH):
+                for y in range(GRID_HEIGHT):
+                    if abs(x - ux) + abs(y - uy) <= u.movement:
+                        surface.blit(overlay, (x * TILE_SIZE, y * TILE_SIZE))
+
+        # 5) Attack‐range highlight (red)
+        if sel:
+            u = sel[0]
+            overlay = pygame.Surface((TILE_SIZE, TILE_SIZE), pygame.SRCALPHA)
+            overlay.fill((255, 0, 0, 80))
+            ux, uy = u.position
+            for x in range(GRID_WIDTH):
+                for y in range(GRID_HEIGHT):
+                    if abs(x - ux) + abs(y - uy) <= u.attack_range:
+                        surface.blit(overlay, (x * TILE_SIZE, y * TILE_SIZE))
+
+        # 6) Hover‐tile highlight (white border)
+        if self.hover_tile:
+            hx, hy = self.hover_tile
+            pygame.draw.rect(
+                surface,
+                (255, 255, 255),
+                (hx * TILE_SIZE, hy * TILE_SIZE, TILE_SIZE, TILE_SIZE),
+                2
+            )
+
+        # 7) Draw units
+        for u in self.units:
+            u.draw(surface)
+
+        # 8) Outline hovered unit (yellow)
+        if self.hover_tile:
+            hovered = next((u for u in self.units if u.position == self.hover_tile), None)
+            if hovered:
+                px = self.hover_tile[0] * TILE_SIZE + TILE_SIZE // 2
+                py = self.hover_tile[1] * TILE_SIZE + TILE_SIZE // 2
+                oc = (255, 255, 0)
+                if hovered.sprite:
+                    rect = hovered.sprite.get_rect(center=(px, py))
+                    pygame.draw.rect(surface, oc, rect, 3)
+                else:
+                    pygame.draw.circle(surface, oc, (px, py), TILE_SIZE // 3 + 4, 3)
+
+        # 9) Stats panel
         BattleUI.draw_stats_panel(surface, self)
